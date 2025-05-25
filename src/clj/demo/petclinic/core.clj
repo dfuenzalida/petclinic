@@ -10,7 +10,8 @@
    [demo.petclinic.web.handler]
 
     ;; Routes
-   [demo.petclinic.web.routes.api])
+   [demo.petclinic.web.routes.api] 
+    [demo.petclinic.web.routes.pages])
   (:gen-class))
 
 ;; log uncaught exceptions in threads
