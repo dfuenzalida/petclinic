@@ -11,7 +11,9 @@
 
     ;; Routes
    [demo.petclinic.web.routes.api] 
-    [demo.petclinic.web.routes.pages])
+    [demo.petclinic.web.routes.pages] 
+    [kit.edge.db.sql.conman] 
+    [kit.edge.db.sql.migratus])
   (:gen-class))
 
 ;; log uncaught exceptions in threads
