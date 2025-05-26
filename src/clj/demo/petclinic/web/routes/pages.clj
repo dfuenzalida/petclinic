@@ -16,8 +16,20 @@
 (defn home [_ request]
   (layout/render request "home.html" {}))
 
-(defn show-vets [{:keys [query-fn]} request]
-  (layout/render request "vets.html" {:vets (query-fn :get-vets {:limit 5 :offset 0})}))
+(def pagesize 5)
+
+(defn parse-int [s default]
+  (try
+    (int (read-string s))
+    (catch Exception _ default)))
+
+(defn show-vets [{:keys [query-fn]} {{:strs [page]} :query-params :as request}]
+  (let [current-page (-> (parse-int page 1) (max 1))
+        total-pages  (-> (query-fn :get-vets-count {}) first :total (/ pagesize) int inc)]
+    (layout/render request "vets.html"
+                   {:vets (query-fn :get-vets {:limit pagesize :offset (* pagesize (dec current-page))})
+                    ;; TODO use a custom tag to render the range of pages: https://kit-clj.github.io/docs/html_templating.html#defining_custom_tags
+                    :pagination {:current current-page :total total-pages :pages (next (range (inc total-pages)))}})))
 
 ;; Routes
 (defn page-routes [opts]

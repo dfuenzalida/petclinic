@@ -17,7 +17,7 @@
   <tbody>
   {% for vet in vets %}
   <tr th:each="vet : ${listVets}">
-    <td th:text="${vet.firstName + ' ' + vet.lastName}">{{vet.first_name}} {{vet.last_name}}</td>
+    <td>{{vet.first_name}} {{vet.last_name}}</td>
     <td><span th:each="specialty : ${vet.specialties}"
               th:text="${specialty.name + ' '}"/> <span
       th:if="${vet.nrOfSpecialties == 0}" th:text="#{none}">none</span></td>
@@ -25,4 +25,7 @@
   {% endfor %}
   </tbody>
 </table>
+
+{% include "pagination.html" %}
+
 {% endblock %}
