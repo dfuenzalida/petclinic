@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+
+<head>
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="shortcut icon" type="image/x-icon" th:href="@{/resources/images/favicon.png}">
+
+  <title>PetClinic :: a webapp demonstration</title>
+
+  <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="/css/petclinic.css" />
+
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark" role="navigation">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/"><span></span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-navbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="main-navbar" style>
+        <ul class="nav navbar-nav me-auto">
+          {% block menubar %}{% endblock %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="container-fluid">
+    <div class="container xd-container">
+
+      {% block content %}{% endblock %}
+
+      <br />
+      <br />
+      <div class="container">
+        <div class="row">
+          <div class="col-12 text-center">
+            Footnote
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</body>
+
+</html>

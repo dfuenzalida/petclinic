@@ -1,0 +1,19 @@
+CREATE TABLE vets (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  first_name VARCHAR(30),
+  last_name  VARCHAR(30)
+);
+--;;
+CREATE INDEX vets_last_name ON vets (last_name);
+--;;
+INSERT INTO vets VALUES (1, 'James', 'Carter');
+--;;
+INSERT INTO vets VALUES (2, 'Helen', 'Leary');
+--;;
+INSERT INTO vets VALUES (3, 'Linda', 'Douglas');
+--;;
+INSERT INTO vets VALUES (4, 'Rafael', 'Ortega');
+--;;
+INSERT INTO vets VALUES (5, 'Henry', 'Stevens');
+--;;
+INSERT INTO vets VALUES (6, 'Sharon', 'Jenkins');

@@ -1,1 +1,3 @@
--- Place your queries here. Docs available https://www.hugsql.org/
+-- :name get-vets :? :*
+-- :doc selects all veterinarians
+SELECT * FROM vets
