@@ -18,3 +18,7 @@ modules/
 .clj-kondo/
 .calva/output-window/
 .lsp/.cache/
+
+# Dev DBs
+petclinic_dev.db
+petclinic_test.db
