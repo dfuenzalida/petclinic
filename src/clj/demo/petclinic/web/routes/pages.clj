@@ -17,7 +17,7 @@
   (layout/render request "home.html" {}))
 
 (defn show-vets [{:keys [query-fn]} request]
-  (layout/render request "vets.html" {:vets (query-fn :get-vets {})}))
+  (layout/render request "vets.html" {:vets (query-fn :get-vets {:limit 5 :offset 0})}))
 
 ;; Routes
 (defn page-routes [opts]
