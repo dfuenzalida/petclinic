@@ -4,7 +4,8 @@
     [integrant.core :as ig]
     [ring.util.http-response :as http-response]
     [reitit.ring :as ring]
-    [reitit.swagger-ui :as swagger-ui]))
+    [reitit.swagger-ui :as swagger-ui]
+    [demo.petclinic.web.pages.layout :as layout]))
 
 (defmethod ig/init-key :handler/ring
   [_ {:keys [router api-path] :as opts}]
@@ -20,14 +21,13 @@
                                               :url  (str api-path "/swagger.json")}))
      (ring/create-default-handler
       {:not-found
-       (constantly (-> {:status 404, :body "Page not found"}
-                       (http-response/content-type "text/plain")))
+       (constantly (layout/error-page {:status 404 :title "Not found" :message "The page you tried to visit was not found."}))
+
        :method-not-allowed
-       (constantly (-> {:status 405, :body "Not allowed"}
-                       (http-response/content-type "text/plain")))
+       (constantly (layout/error-page {:status 405 :title "Not allowed"}))
+
        :not-acceptable
-       (constantly (-> {:status 406, :body "Not acceptable"}
-                       (http-response/content-type "text/plain")))}))
+       (constantly (layout/error-page {:status 406 :title "Not acceptable"}))}))
     {:middleware [(middleware/wrap-base opts)]}))
 
 (defmethod ig/init-key :router/routes
