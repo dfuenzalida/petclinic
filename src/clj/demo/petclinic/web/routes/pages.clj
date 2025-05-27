@@ -39,7 +39,7 @@
         total-items  (:total (query-fn :get-vets-count {}))]
     (layout/render request "vets.html"
                    (paginate
-                    {:vets (query-fn :get-vets {:limit PAGESIZE :offset (* PAGESIZE (dec current-page))})}
+                    {:vets (query-fn :get-vets {:pagesize PAGESIZE :page current-page})}
                     current-page total-items))))
 
 ;; Routes

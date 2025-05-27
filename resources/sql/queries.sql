@@ -1,6 +1,6 @@
 -- :name get-vets :? :*
--- :doc selects up to :limit veterinarians by a given :offset
-SELECT * FROM vets LIMIT :limit OFFSET :offset
+-- :doc selects the up to :pagesize veterinarians in the :page page
+SELECT * FROM vets LIMIT :pagesize OFFSET ((:page - 1) * :pagesize)
 
 -- Returns a single map with the total number in :total
 -- :name get-vets-count :! :1
