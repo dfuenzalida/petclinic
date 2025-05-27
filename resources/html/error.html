@@ -1,15 +1,17 @@
 {% extends "base.html" %}
 
 {% block menubar %}
-{% include "menu.html" %}
+{% include "menu.html" with active="/oups" %}
 {% endblock %}
 
 {% block content %}
 
-<h1>Error {{status}}{% if title %} - {{title}}{% endif %}</h1>
-<hr>
+<img class="img-responsive" src="/img/pets.png">
+
+<h2>Something happened...</h2>
+
 {% if message %}
-<h4>{{message}}</h4>
+<p>{{message}}</p>
 {% endif %}
 
 {% endblock %}

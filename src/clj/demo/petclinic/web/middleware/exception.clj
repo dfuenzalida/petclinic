@@ -1,17 +1,14 @@
 (ns demo.petclinic.web.middleware.exception
   (:require
     [clojure.tools.logging :as log]
-    [reitit.ring.middleware.exception :as exception]))
+    [reitit.ring.middleware.exception :as exception]
+    [demo.petclinic.web.pages.layout :as layout]))
 
 (defn handler [message status exception request]
   (when (>= status 500)
     ;; You can optionally use this to report error to an external service
     (log/error exception))
-  {:status status
-   :body   {:message   message
-            :exception (.getClass exception)
-            :data      (ex-data exception)
-            :uri       (:uri request)}})
+  (layout/error-page {:status status :title message :message (.getMessage exception)}))
 
 (def wrap-exception
   (exception/create-exception-middleware
