@@ -28,7 +28,7 @@
             {:current current-page :total total-pages :pages (next (range (inc total-pages)))}})))
 
 (defn parse-page
-  "Attempts to parse `s` into an integer >= 1. Returns `default` when parsing fails."
+  "Attempts to parse `s` into an integer >= 1. Returns the greatest of 1 and `default` when parsing fails."
   [s default]
   (max 1 (try
            (int (edn/read-string s))
