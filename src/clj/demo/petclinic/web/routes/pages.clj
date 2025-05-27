@@ -1,5 +1,6 @@
 (ns demo.petclinic.web.routes.pages
   (:require
+   [clojure.edn :as edn]
    [demo.petclinic.web.middleware.exception :as exception]
    [demo.petclinic.web.pages.layout :as layout]
    [integrant.core :as ig]
@@ -16,25 +17,37 @@
 (defn home [_ request]
   (layout/render request "home.html" {}))
 
-(def pagesize 5)
+(def PAGESIZE 5)
 
-(defn parse-int [s default]
-  (try
-    (int (read-string s))
-    (catch Exception _ default)))
+(defn paginate
+  "Given a context map `m`, a current page and the total of items, add pagination-related keys to `m`"
+  [m current-page total-items]
+  (let [total-pages (-> total-items (/ PAGESIZE) int inc)]
+    (merge m
+           {:pagination
+            {:current current-page :total total-pages :pages (next (range (inc total-pages)))}})))
+
+(defn parse-page
+  "Attempts to parse `s` into an integer >= 1. Returns `default` when parsing fails."
+  [s default]
+  (max 1 (try
+           (int (edn/read-string s))
+           (catch Exception _ default))))
 
 (defn show-vets [{:keys [query-fn]} {{:strs [page]} :query-params :as request}]
-  (let [current-page (-> (parse-int page 1) (max 1))
-        total-pages  (-> (query-fn :get-vets-count {}) first :total (/ pagesize) int inc)]
+  (let [current-page (parse-page page 1)
+        total-items  (:total (query-fn :get-vets-count {}))]
     (layout/render request "vets.html"
-                   {:vets (query-fn :get-vets {:limit pagesize :offset (* pagesize (dec current-page))})
-                    ;; TODO use a custom tag to render the range of pages: https://kit-clj.github.io/docs/html_templating.html#defining_custom_tags
-                    :pagination {:current current-page :total total-pages :pages (next (range (inc total-pages)))}})))
+                   (paginate
+                    {:vets (query-fn :get-vets {:limit PAGESIZE :offset (* PAGESIZE (dec current-page))})}
+                    current-page total-items))))
 
 ;; Routes
 (defn page-routes [opts]
   [["/" {:get (partial home opts)}]
-   ["/vets" {:get (partial show-vets opts)}]])
+   ["/vets" {:get (partial show-vets opts)}]
+   ;; TODO fix error page middleware
+   ["/oups" {:get (fn [& _] (throw (RuntimeException. "Expected: controller used to showcase what happens when an exception is thrown")))}]])
 
 (def route-data
   {:middleware
