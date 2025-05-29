@@ -6,7 +6,8 @@
    [integrant.core :as ig]
    [reitit.ring.middleware.muuntaja :as muuntaja]
    [reitit.ring.middleware.parameters :as parameters]
-   [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]))
+   [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
+   [clojure.tools.logging :as log]))
 
 (defn wrap-page-defaults []
   (let [error-page (layout/error-page
@@ -34,12 +35,43 @@
            (int (edn/read-string s))
            (catch Exception _ default))))
 
+(defn group-specialties
+  "Given a list of vets and specialties by vet_id, groups the specialties by vet"
+  [vets specs-by-vet]
+  (let [vets-by-id (into {} (map (juxt :id identity) vets))]
+    (->> (reduce
+          (fn [m {:keys [vet_id specialty]}]
+            (let [v (get-in m [vet_id :specialties] [])]
+              (assoc-in m [vet_id :specialties] (into v [specialty]))))
+          vets-by-id specs-by-vet)
+         vals
+         (sort-by :id))))
+
+(comment
+  (let [vets [{:id 1 :first_name "James" :last_name "Carter"}
+              {:id 2 :first_name "Helen" :last_name "Leary"}
+              {:id 3 :first_name "Linda" :last_name "Douglas"}]
+        specs [{:vet_id 2 :specialty "radiology"}
+               {:vet_id 3 :specialty "dentistry"}
+               {:vet_id 3 :specialty "surgery"}]
+        vets-by-id (into {} (map (juxt :id identity) vets))]
+    (reduce (fn [m {:keys [vet_id specialty]}]
+              (let [v (get-in m [vet_id :specialties] '())]
+                (update-in m [vet_id :specialties] conj specialty)))
+            vets-by-id specs)
+    #_(group-by :id vets))
+  )
+
 (defn show-vets [{:keys [query-fn]} {{:strs [page]} :query-params :as request}]
   (let [current-page (parse-page page 1)
-        total-items  (:total (query-fn :get-vets-count {}))]
+        total-items  (:total (query-fn :get-vets-count {}))
+        vets         (query-fn :get-vets {:pagesize PAGESIZE :page current-page})
+        vets-specs   (query-fn :specialties-by-vet-ids {:vetids (map :id vets)})
+        vets         (group-specialties vets vets-specs)]
+    ;; (log/info "vets:" vets)
     (layout/render request "vets.html"
                    (paginate
-                    {:vets (query-fn :get-vets {:pagesize PAGESIZE :page current-page})}
+                    {:vets vets}
                     current-page total-items))))
 
 ;; Routes

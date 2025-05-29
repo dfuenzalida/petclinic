@@ -18,9 +18,13 @@
   {% for vet in vets %}
   <tr th:each="vet : ${listVets}">
     <td>{{vet.first_name}} {{vet.last_name}}</td>
-    <td><span th:each="specialty : ${vet.specialties}"
-              th:text="${specialty.name + ' '}"/> <span
-      th:if="${vet.nrOfSpecialties == 0}" th:text="#{none}">none</span></td>
+    <td>
+        {% if vet.specialties %}
+          {% for s in vet.specialties %}<span>{{ s }} </span>{% endfor %}
+        {% else %}
+        <span>none</span>
+        {% endif %}
+    </td>
   </tr>
   {% endfor %}
   </tbody>

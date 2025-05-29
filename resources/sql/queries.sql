@@ -6,3 +6,7 @@ SELECT * FROM vets LIMIT :pagesize OFFSET ((:page - 1) * :pagesize)
 -- :name get-vets-count :! :1
 -- :doc returns the total number of veterinarians
 SELECT COUNT(*) AS total FROM vets
+
+-- :name specialties-by-vet-ids :? :*
+-- :doc given a list of vet ids, get their specialties
+SELECT vs.vet_id AS vet_id, s.name AS specialty FROM specialties s, vet_specialties vs WHERE vet_id IN (:v*:vetids) AND vs.specialty_id = s.id
