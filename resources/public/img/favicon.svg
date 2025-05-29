@@ -1,0 +1,9 @@
+<svg viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .sized {
+      font: 36px sans-serif; 
+    }
+  </style>
+
+  <text x="0" y="36" class="sized">🐠</text>
+</svg>
