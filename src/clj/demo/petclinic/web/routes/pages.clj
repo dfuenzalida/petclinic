@@ -78,7 +78,6 @@
 (defn page-routes [opts]
   [["/" {:get (partial home opts)}]
    ["/vets" {:get (partial show-vets opts)}]
-   ;; TODO fix error page middleware
    ["/oups" {:get (fn [& _] (throw (RuntimeException. "Expected: controller used to showcase what happens when an exception is thrown")))}]])
 
 (def route-data
