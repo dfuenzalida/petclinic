@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block menubar %}
+{% include "menu.html" with active="/owners/find" %}
+{% endblock %}
+
+{% block content %}
+<h2>{{t.owners}}</h2>
+
+<table id="vets" class="table table-striped">
+  <thead>
+  <tr>
+    <th style="width: 150px;">{{t.name}}</th>
+    <th style="width: 200px;">{{t.address}}</th>
+    <th>{{t.city}}</th>
+    <th style="width: 120px;">{{t.telephone}}</th>
+    <th>{{t.pets}}</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for owner in owners %}
+  <tr>
+    <th><a href="/owners/{{owner.id}}">{{owner.first_name}} {{owner.last_name}}</a></th>
+    <td>{{owner.address}}</td>
+    <td>{{owner.city}}</td>
+    <td>{{owner.telephone}}</td>
+    <td>
+        {% if owner.specialties %}
+          {% for s in owner.specialties %}<span>{{ s }} </span>{% endfor %}
+        {% else %}
+        <span>{{t.none}}</span>
+        {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% include "pagination.html" %}
+
+{% endblock %}

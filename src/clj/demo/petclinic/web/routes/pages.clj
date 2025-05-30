@@ -27,7 +27,8 @@
 (defn with-pagination
   "Given a context map `m`, a current page and the total of items, add pagination-related keys to `m`"
   [m current-page total-items]
-  (let [total-pages (-> total-items (/ PAGESIZE) int inc)]
+  (let [rounding    (if (zero? (mod total-items PAGESIZE)) 0 1)
+        total-pages (-> total-items (/ PAGESIZE) int (+ rounding))]
     (merge m
            {:pagination
             {:current current-page :total total-pages :pages (next (range (inc total-pages)))}})))
@@ -67,6 +68,20 @@
     #_(group-by :id vets))
   )
 
+(defn search-owners
+  [{:keys [query-fn]} {{:strs [lastName page]} :query-params :as request}]
+  (let [current-page (parse-page page 1)
+       total-items  (:total (query-fn :get-owners-count {}))
+       owners       (query-fn :get-owners {:pagesize PAGESIZE :page current-page})
+       ;;vets-specs   (query-fn :specialties-by-vet-ids {:vetids (map :id vets)})
+       ;;vets         (group-specialties vets vets-specs)
+        ]
+   ;; (log/info "vets:" vets)
+   (layout/render request "owners.html"
+                  (-> {:owners owners}
+                      (with-pagination current-page total-items)
+                      (tr/with-translation request)))))
+
 (defn show-vets [{:keys [query-fn]} {{:strs [page]} :query-params :as request}]
   (let [current-page (parse-page page 1)
         total-items  (:total (query-fn :get-vets-count {}))
@@ -83,6 +98,7 @@
 (defn page-routes [opts]
   [["/" {:get (partial home opts)}]
    ["/vets" {:get (partial show-vets opts)}]
+   ["/owners" {:get (partial search-owners opts)}]
    ["/owners/find" {:get (partial find-owners opts)}]
    ["/oups" {:get (fn [& _] (throw (RuntimeException. "Expected: controller used to showcase what happens when an exception is thrown")))}]])
 
