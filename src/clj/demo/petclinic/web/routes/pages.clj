@@ -3,6 +3,7 @@
    [clojure.edn :as edn]
    [demo.petclinic.web.middleware.exception :as exception]
    [demo.petclinic.web.pages.layout :as layout]
+   [demo.petclinic.web.translations :as tr]
    [integrant.core :as ig]
    [reitit.ring.middleware.muuntaja :as muuntaja]
    [reitit.ring.middleware.parameters :as parameters]
@@ -16,11 +17,14 @@
     #(wrap-anti-forgery % {:error-response error-page})))
 
 (defn home [_ request]
-  (layout/render request "home.html" {}))
+  (layout/render request "home.html" (tr/with-translation {} request)))
+
+(defn find-owners [_ request]
+  (layout/render request "ownersFind.html" (tr/with-translation {} request)))
 
 (def PAGESIZE 5)
 
-(defn paginate
+(defn with-pagination
   "Given a context map `m`, a current page and the total of items, add pagination-related keys to `m`"
   [m current-page total-items]
   (let [total-pages (-> total-items (/ PAGESIZE) int inc)]
@@ -48,6 +52,7 @@
          (sort-by :id))))
 
 (comment
+  ;; TODO create a test with this
   (let [vets [{:id 1 :first_name "James" :last_name "Carter"}
               {:id 2 :first_name "Helen" :last_name "Leary"}
               {:id 3 :first_name "Linda" :last_name "Douglas"}]
@@ -70,14 +75,15 @@
         vets         (group-specialties vets vets-specs)]
     ;; (log/info "vets:" vets)
     (layout/render request "vets.html"
-                   (paginate
-                    {:vets vets}
-                    current-page total-items))))
+                   (-> {:vets vets}
+                       (with-pagination current-page total-items)
+                       (tr/with-translation request)))))
 
 ;; Routes
 (defn page-routes [opts]
   [["/" {:get (partial home opts)}]
    ["/vets" {:get (partial show-vets opts)}]
+   ["/owners/find" {:get (partial find-owners opts)}]
    ["/oups" {:get (fn [& _] (throw (RuntimeException. "Expected: controller used to showcase what happens when an exception is thrown")))}]])
 
 (def route-data

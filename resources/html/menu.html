@@ -1,27 +1,27 @@
 <li class="nav-item">
-    <a class="nav-link {% ifequal active "/" %}active{% endifequal %}" href="/" title="home page">
+    <a class="nav-link {% ifequal active "/" %}active{% endifequal %}" href="/" title="{{t.home}}">
         <span class="fa fa-home"></span>
-        <span>Home</span>
+        <span>{{t.home}}</span>
     </a>
 </li>
 
 <li class="nav-item">
-    <a class="nav-link {% ifequal active "/owners/find" %}active{% endifequal %}" href="/owners/find" title="find owners">
+    <a class="nav-link {% ifequal active "/owners/find" %}active{% endifequal %}" href="/owners/find" title="{{t.findOwner}}">
         <span class="fa fa-search"></span>
-        <span>Find Owners</span>
+        <span>{{t.findOwner}}</span>
     </a>
 </li>
 
 <li class="nav-item">
-    <a class="nav-link {% ifequal active "/vets" %}active{% endifequal %}" href="/vets" title="veterinarians">
+    <a class="nav-link {% ifequal active "/vets" %}active{% endifequal %}" href="/vets" title="{{t.vets}}">
         <span class="fa fa-th-list"></span>
-        <span>Veterinarians</span>
+        <span>{{t.vets}}</span>
     </a>
 </li>
 
 <li class="nav-item">
     <a class="nav-link {% ifequal active "/oups" %}active{% endifequal %}" href="/oups" title="trigger a RuntimeException to see how it is handled">
         <span class="fa fa-exclamation-triangle"></span>
-        <span>Error</span>
+        <span>{{t.error}}</span>
     </a>
 </li>
