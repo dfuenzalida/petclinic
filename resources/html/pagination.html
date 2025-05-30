@@ -1,6 +1,6 @@
 {% ifequal pagination.pages [] %}{% else %}
 <div>
-  <span>Pages:</span>
+  <span>{{t.pages}}</span>
   <span>[</span>
   {% for pagenum in pagination.pages %}
     <span>
@@ -15,33 +15,33 @@
 
   <span>
     {% if pagination.current > 1 %}
-    <a href="?page=1" class="fa fa-fast-backward"></a>
+    <a href="?page=1" title="{{t.first}}" class="fa fa-fast-backward"></a>
     {% else %}
-    <span text="#{first}" title="#{first}" class="fa fa-fast-backward"></span>
+    <span title="{{t.first}}" class="fa fa-fast-backward"></span>
     {% endif %}
   </span>
 
   <span>
     {% if pagination.current > 1 %}
-    <a href="?page={{pagination.current|add:-1}}" class="fa fa-step-backward"></a>
+    <a href="?page={{pagination.current|add:-1}}" title="{{t.previous}}" class="fa fa-step-backward"></a>
     {% else %}
-    <span text="#{previous}" title="#{previous}" class="fa fa-step-backward"></span>
+    <span title="{{t.previous}}" class="fa fa-step-backward"></span>
     {% endif %}
   </span>
 
   <span>
     {% if pagination.current < pagination.total %}
-    <a href="?page={{pagination.current|add:1}}" class="fa fa-step-forward"></a>
+    <a href="?page={{pagination.current|add:1}}" title="{{t.next}}" class="fa fa-step-forward"></a>
     {% else %}
-    <span text="#{next}" title="#{next}" class="fa fa-step-forward"></span>
+    <span title="{{t.next}}" class="fa fa-step-forward"></span>
     {% endif %}
   </span>
 
   <span>
     {% if pagination.current < pagination.total %}
-    <a href="?page={{pagination.total}}" class="fa fa-fast-forward"></a>
+    <a href="?page={{pagination.total}}" title="{{t.last}}" class="fa fa-fast-forward"></a>
     {% else %}
-    <span text="#{next}" title="#{next}" class="fa fa-fast-forward"></span>
+    <span title="{{t.last}}" class="fa fa-fast-forward"></span>
     {% endif %}
   </span>
 
