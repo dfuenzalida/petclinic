@@ -114,7 +114,7 @@
 ;; Routes
 (defn page-routes [opts]
   [["/" {:get (partial home opts)}]
-   ["/vets" {:get (partial show-vets opts)}]
+   ["/vets.html" {:get (partial show-vets opts)}]
    ["/owners" {:get (partial search-owners opts)}]
    ["/owners/find" {:get (partial find-owners opts)}]
    ["/oups" {:get (fn [& _] (throw (RuntimeException. "Expected: controller used to showcase what happens when an exception is thrown")))}]])
