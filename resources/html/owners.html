@@ -20,13 +20,13 @@
   <tbody>
   {% for owner in owners %}
   <tr>
-    <th><a href="/owners/{{owner.id}}">{{owner.first_name}} {{owner.last_name}}</a></th>
+    <td><a href="/owners/{{owner.id}}">{{owner.first_name}} {{owner.last_name}}</a></td>
     <td>{{owner.address}}</td>
     <td>{{owner.city}}</td>
     <td>{{owner.telephone}}</td>
     <td>
-        {% if owner.specialties %}
-          {% for s in owner.specialties %}<span>{{ s }} </span>{% endfor %}
+        {% if owner.name %}
+          {{ owner.name|sort|join:", " }}
         {% else %}
         <span>{{t.none}}</span>
         {% endif %}

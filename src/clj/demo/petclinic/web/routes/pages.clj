@@ -39,15 +39,16 @@
            (int (edn/read-string s))
            (catch Exception _ default))))
 
-(defn group-specialties
-  "Given a list of vets and specialties by id, groups the specialties by vet"
-  [vets specs-by-vet]
-  (let [vets-by-id (into {} (map (juxt :id identity) vets))]
+(defn group-properties
+  "Given maps representing `items` with some `id1` and another list of `items with an `id2` and some other `key`, 'updates' the list of maps with the collection of `:prop`s where `id1` equals `id2`"
+  [items extra-props id1 id2 key]
+  (let [items-by-id (into {} (map (juxt id1 identity) items))]
     (->> (reduce
-          (fn [m {:keys [id specialties]}]
-            (let [v (get-in m [id :specialties] [])]
-              (assoc-in m [id :specialties] (into v [specialties]))))
-          vets-by-id specs-by-vet)
+          (fn [m props]
+            (let [k (id2 props)
+                  xs (get-in m [k key] [])]
+              (assoc-in m [k key] (into xs [(key props)]))))
+          items-by-id extra-props)
          vals
          (sort-by :id))))
 
@@ -65,6 +66,15 @@
                 (update-in m [vet_id :specialties] conj specialty)))
             vets-by-id specs)
     #_(group-by :id vets))
+
+  (let [vets [{:id 1 :first_name "James" :last_name "Carter"}
+            {:id 2 :first_name "Helen" :last_name "Leary"}
+            {:id 3 :first_name "Linda" :last_name "Douglas"}]
+      specs [{:vet_id 2 :specialty "radiology"}
+             {:vet_id 3 :specialty "dentistry"}
+             {:vet_id 3 :specialty "surgery"}]]
+    (group-properties vets specs :id :vet_id :specialty))
+
   )
 
 ;; TODO
@@ -76,7 +86,10 @@
   (let [current-page (parse-page page 1)
         lastNameLike (format "%s%%" (str lastName ""))
         total-items  (:total (query-fn :get-owners-count {:lastNameLike lastNameLike}))
-        owners       (query-fn :get-owners {:lastNameLike lastNameLike :pagesize PAGESIZE :page current-page})]
+        owners       (query-fn :get-owners {:lastNameLike lastNameLike :pagesize PAGESIZE :page current-page})
+        pets-by-owner (query-fn :get-pets-by-owner-ids {:ownerids (map :id owners)})
+        owners       (group-properties owners pets-by-owner :id :owner_id :name)
+        ]
     (layout/render request "owners.html"
                    (-> {:owners owners}
                        (with-pagination current-page total-items)
@@ -87,7 +100,7 @@
         total-items  (:total (query-fn :get-vets-count {}))
         vets         (query-fn :get-vets {:pagesize PAGESIZE :page current-page})
         vets-specs   (query-fn :specialties-by-vet-ids {:vetids (map :id vets)})
-        vets         (group-specialties vets vets-specs)]
+        vets         (group-properties vets vets-specs :id :id :specialties)]
     (layout/render request "vets.html"
                    (-> {:vets vets}
                        (with-pagination current-page total-items)

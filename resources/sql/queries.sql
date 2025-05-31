@@ -19,3 +19,7 @@ SELECT * FROM owners WHERE last_name LIKE :lastNameLike LIMIT :pagesize OFFSET (
 -- :name get-owners-count :! :1
 -- :doc returns the total number of veterinarians
 SELECT COUNT(*) AS total FROM owners WHERE last_name LIKE :lastNameLike
+
+-- :name get-pets-by-owner-ids :? :*
+-- :doc Return all pets for a list of owners
+SELECT * FROM pets WHERE owner_id IN (:v*:ownerids)
