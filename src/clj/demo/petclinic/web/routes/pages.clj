@@ -7,6 +7,7 @@
    [integrant.core :as ig]
    [reitit.ring.middleware.muuntaja :as muuntaja]
    [reitit.ring.middleware.parameters :as parameters]
+   [ring.util.http-response :refer [found]]
    [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
    [clojure.tools.logging :as log]))
 
@@ -84,16 +85,20 @@
 (defn search-owners
   [{:keys [query-fn]} {{:strs [lastName page]} :query-params :as request}]
   (let [current-page (parse-page page 1)
-        lastNameLike (format "%s%%" (str lastName ""))
+        lastNameLike (str lastName "%")
         total-items  (:total (query-fn :get-owners-count {:lastNameLike lastNameLike}))
         owners       (query-fn :get-owners {:lastNameLike lastNameLike :pagesize PAGESIZE :page current-page})
         pets-by-owner (query-fn :get-pets-by-owner-ids {:ownerids (map :id owners)})
-        owners       (group-properties owners pets-by-owner :id :owner_id :name)
-        ]
-    (layout/render request "owners.html"
-                   (-> {:owners owners}
-                       (with-pagination current-page total-items)
-                       (tr/with-translation request)))))
+        owners       (group-properties owners pets-by-owner :id :owner_id :name)]
+    (condp = (count owners)
+      0 (let [m (tr/with-translation {} request)]
+          (layout/render request "ownersFind.html"
+                         (merge {:lastName lastName :errors [(get-in m [:t :notFound])]} m)))
+      1 (found (->> owners first :id (str "/owners/")))
+      (layout/render request "owners.html"
+                     (-> {:owners owners}
+                         (with-pagination current-page total-items)
+                         (tr/with-translation request))))))
 
 (defn show-vets [{:keys [query-fn]} {{:strs [page]} :query-params :as request}]
   (let [current-page (parse-page page 1)
