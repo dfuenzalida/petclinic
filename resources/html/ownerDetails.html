@@ -6,34 +6,34 @@
 
 {% block content %}
 
-<h2>Owner Information</h2>
+<h2>{{t.ownerInformation}}</h2>
 
 <table class="table table-striped">
     <tr>
-    <th>Name</th>
+    <th>{{t.name}}</th>
     <td><b>{{owner.first_name}} {{owner.last_name}}</b></td>
     </tr>
     <tr>
-    <th>Address</th>
+    <th>{{t.address}}</th>
     <td>{{owner.address}}</td>
     </tr>
     <tr>
-    <th>City</th>
+    <th>{{t.city}}</th>
     <td>{{owner.city}}</td>
     </tr>
     <tr>
-    <th>Telephone</th>
+    <th>{{t.telephone}}</th>
     <td>{{owner.telephone}}</td>
     </tr>
 </table>
 
-<a href="{{owner.id}}/edit" class="btn btn-primary">Edit Owner</a>
-<a href="{{owner.id}}/pets/new" class="btn btn-primary">Add New Pet</a>
+<a href="{{owner.id}}/edit" class="btn btn-primary">{{t.editOwner}}</a>
+<a href="{{owner.id}}/pets/new" class="btn btn-primary">{{t.addNewPet}}</a>
 
 <br />
 <br />
 <br />
-<h2>Pets and Visits</h2>
+<h2>{{t.petsAndVisits}}</h2>
 
 <table class="table table-striped">
 
@@ -41,11 +41,11 @@
     <tr>
     <td valign="top">
         <dl class="dl-horizontal">
-        <dt>Name</dt>
+        <dt>{{t.name}}</dt>
         <dd>{{pet.name}}</dd>
-        <dt>Birth Date</dt>
+        <dt>{{t.birthDate}}</dt>
         <dd>{{pet.birth_date}}</dd>
-        <dt>Type</dt>
+        <dt>{{t.type}}</dt>
         <dd>{{pet.pet_type}}</dd>
         </dl>
     </td>
@@ -53,14 +53,14 @@
         <table class="table-condensed">
         <thead>
             <tr>
-            <th>Visit Date</th>
-            <th>Description</th>
+            <th>{{t.visitDate}}</th>
+            <th>{{t.description}}</th>
             </tr>
         </thead>
         
         <tr>
-            <td><a href="{{owner.id}}/pets/{{pet.id}}/edit">Edit Pet</a></td>
-            <td><a href="{{owner.id}}/pets/{{pet.id}}/visits/new">Add Visit</a></td>
+            <td><a href="{{owner.id}}/pets/{{pet.id}}/edit">{{t.editPet}}</a></td>
+            <td><a href="{{owner.id}}/pets/{{pet.id}}/visits/new">{{t.addVisit}}</a></td>
         </tr>
         </table>
     </td>
