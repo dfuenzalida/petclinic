@@ -27,8 +27,7 @@
 (defn with-pagination
   "Given a context map `m`, a current page and the total of items, add pagination-related keys to `m`"
   [m current-page total-items]
-  (let [rounding    (if (zero? (mod total-items PAGESIZE)) 0 1)
-        total-pages (-> total-items (/ PAGESIZE) int (+ rounding))]
+  (let [total-pages (-> total-items (/ PAGESIZE) Math/ceil int)]
     (merge m
            {:pagination
             {:current current-page :total total-pages :pages (next (range (inc total-pages)))}})))
@@ -41,13 +40,13 @@
            (catch Exception _ default))))
 
 (defn group-specialties
-  "Given a list of vets and specialties by vet_id, groups the specialties by vet"
+  "Given a list of vets and specialties by id, groups the specialties by vet"
   [vets specs-by-vet]
   (let [vets-by-id (into {} (map (juxt :id identity) vets))]
     (->> (reduce
-          (fn [m {:keys [vet_id specialty]}]
-            (let [v (get-in m [vet_id :specialties] [])]
-              (assoc-in m [vet_id :specialties] (into v [specialty]))))
+          (fn [m {:keys [id specialties]}]
+            (let [v (get-in m [id :specialties] [])]
+              (assoc-in m [id :specialties] (into v [specialties]))))
           vets-by-id specs-by-vet)
          vals
          (sort-by :id))))
@@ -68,19 +67,20 @@
     #_(group-by :id vets))
   )
 
+;; TODO
+;; No results => stay if search page with error
+;; If searching yields one result, we open the owners detail page
+;; otherwise we show the list of results [implemented]
 (defn search-owners
   [{:keys [query-fn]} {{:strs [lastName page]} :query-params :as request}]
   (let [current-page (parse-page page 1)
-       total-items  (:total (query-fn :get-owners-count {}))
-       owners       (query-fn :get-owners {:pagesize PAGESIZE :page current-page})
-       ;;vets-specs   (query-fn :specialties-by-vet-ids {:vetids (map :id vets)})
-       ;;vets         (group-specialties vets vets-specs)
-        ]
-   ;; (log/info "vets:" vets)
-   (layout/render request "owners.html"
-                  (-> {:owners owners}
-                      (with-pagination current-page total-items)
-                      (tr/with-translation request)))))
+        lastNameLike (format "%s%%" (str lastName ""))
+        total-items  (:total (query-fn :get-owners-count {:lastNameLike lastNameLike}))
+        owners       (query-fn :get-owners {:lastNameLike lastNameLike :pagesize PAGESIZE :page current-page})]
+    (layout/render request "owners.html"
+                   (-> {:owners owners}
+                       (with-pagination current-page total-items)
+                       (tr/with-translation request)))))
 
 (defn show-vets [{:keys [query-fn]} {{:strs [page]} :query-params :as request}]
   (let [current-page (parse-page page 1)
@@ -88,7 +88,6 @@
         vets         (query-fn :get-vets {:pagesize PAGESIZE :page current-page})
         vets-specs   (query-fn :specialties-by-vet-ids {:vetids (map :id vets)})
         vets         (group-specialties vets vets-specs)]
-    ;; (log/info "vets:" vets)
     (layout/render request "vets.html"
                    (-> {:vets vets}
                        (with-pagination current-page total-items)

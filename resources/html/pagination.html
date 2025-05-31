@@ -1,4 +1,4 @@
-{% ifequal pagination.pages [] %}{% else %}
+{% if pagination.total > 1 %}
 <div>
   <span>{{t.pages}}</span>
   <span>[</span>
@@ -47,4 +47,4 @@
 
 </div>
 
-{% endifequal %}
+{% endif %}
