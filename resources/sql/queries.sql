@@ -11,6 +11,10 @@ SELECT COUNT(*) AS total FROM vets
 -- :doc given a list of vet ids, get their specialties
 SELECT vs.vet_id AS id, s.name AS specialties FROM specialties s, vet_specialties vs WHERE vet_id IN (:v*:vetids) AND vs.specialty_id = s.id
 
+-- :name get-owner :? :1
+-- :doc returns a single owner by their id
+SELECT * FROM owners WHERE id = :id
+
 -- :name get-owners :? :*
 -- :doc selects the up to :pagesize owners in the :page page
 SELECT * FROM owners WHERE last_name LIKE :lastNameLike LIMIT :pagesize OFFSET ((:page - 1) * :pagesize)
@@ -22,4 +26,4 @@ SELECT COUNT(*) AS total FROM owners WHERE last_name LIKE :lastNameLike
 
 -- :name get-pets-by-owner-ids :? :*
 -- :doc Return all pets for a list of owners
-SELECT * FROM pets WHERE owner_id IN (:v*:ownerids)
+SELECT p.id AS id, p.name AS name, p.birth_date AS birth_date, t.name AS pet_type, p.owner_id AS owner_id FROM pets p, types t WHERE owner_id IN (:v*:ownerids) AND p.type_id = t.id

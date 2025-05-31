@@ -20,9 +20,6 @@
 (defn home [_ request]
   (layout/render request "home.html" (tr/with-translation {} request)))
 
-(defn find-owners [_ request]
-  (layout/render request "ownersFind.html" (tr/with-translation {} request)))
-
 (def PAGESIZE 5)
 
 (defn with-pagination
@@ -69,13 +66,12 @@
     #_(group-by :id vets))
 
   (let [vets [{:id 1 :first_name "James" :last_name "Carter"}
-            {:id 2 :first_name "Helen" :last_name "Leary"}
-            {:id 3 :first_name "Linda" :last_name "Douglas"}]
-      specs [{:vet_id 2 :specialty "radiology"}
-             {:vet_id 3 :specialty "dentistry"}
-             {:vet_id 3 :specialty "surgery"}]]
+              {:id 2 :first_name "Helen" :last_name "Leary"}
+              {:id 3 :first_name "Linda" :last_name "Douglas"}]
+        specs [{:vet_id 2 :specialty "radiology"}
+               {:vet_id 3 :specialty "dentistry"}
+               {:vet_id 3 :specialty "surgery"}]]
     (group-properties vets specs :id :vet_id :specialty))
-
   )
 
 ;; TODO
@@ -91,14 +87,29 @@
         pets-by-owner (query-fn :get-pets-by-owner-ids {:ownerids (map :id owners)})
         owners       (group-properties owners pets-by-owner :id :owner_id :name)]
     (condp = (count owners)
+      ;; No results: return to search page with error
       0 (let [m (tr/with-translation {} request)]
           (layout/render request "ownersFind.html"
                          (merge {:lastName lastName :errors [(get-in m [:t :notFound])]} m)))
+
+      ;; 1 result: redirect to owner details
       1 (found (->> owners first :id (str "/owners/")))
+
+      ;; More than 1 result: show list of owners
       (layout/render request "owners.html"
                      (-> {:owners owners}
                          (with-pagination current-page total-items)
                          (tr/with-translation request))))))
+
+(defn owner-details [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
+  (condp = ownerid
+    "find"
+    (layout/render request "ownersFind.html" (tr/with-translation {} request))
+
+    ;; otherwise expect the ownerid to be a proper int
+    (let [owner (query-fn :get-owner {:id ownerid})
+          pets (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})]
+      (layout/render request "ownerDetails.html" (tr/with-translation {:owner owner :pets pets} request)))))
 
 (defn show-vets [{:keys [query-fn]} {{:strs [page]} :query-params :as request}]
   (let [current-page (parse-page page 1)
@@ -116,7 +127,7 @@
   [["/" {:get (partial home opts)}]
    ["/vets.html" {:get (partial show-vets opts)}]
    ["/owners" {:get (partial search-owners opts)}]
-   ["/owners/find" {:get (partial find-owners opts)}]
+   ["/owners/:ownerid" {:get (partial owner-details opts)}]
    ["/oups" {:get (fn [& _] (throw (RuntimeException. "Expected: controller used to showcase what happens when an exception is thrown")))}]])
 
 (def route-data
