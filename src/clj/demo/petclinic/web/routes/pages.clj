@@ -88,14 +88,14 @@
     (condp = (count owners)
       ;; No results: return to search page with error
       0 (let [m (tr/with-translation {} request)]
-          (layout/render request "ownersFind.html"
+          (layout/render request "owners/ownersFind.html"
                          (merge {:lastName lastName :errors [(get-in m [:t :notFound])]} m)))
 
       ;; 1 result: redirect to owner details
       1 (found (->> owners first :id (str "/owners/")))
 
       ;; More than 1 result: show list of owners
-      (layout/render request "owners.html"
+      (layout/render request "owners/ownersList.html"
                      (-> {:owners owners}
                          (with-pagination current-page total-items)
                          (tr/with-translation request))))))
@@ -103,7 +103,7 @@
 (defn owner-details [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
   (condp = ownerid
     "find"
-    (layout/render request "ownersFind.html" (tr/with-translation {} request))
+    (layout/render request "owners/ownersFind.html" (tr/with-translation {} request))
 
     ;; Attempt to read the param as an int. If fails or owner not found, show error
     (try
@@ -112,7 +112,7 @@
             pets    (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})]
         (if (nil? owner)
           (throw (Exception.))
-          (layout/render request "ownerDetails.html" (tr/with-translation {:owner owner :pets pets} request))))
+          (layout/render request "owners/ownerDetails.html" (tr/with-translation {:owner owner :pets pets} request))))
       (catch Exception _
         (layout/error-page (tr/with-translation {:status 404 :message "Owner not found"} request))))))
 
