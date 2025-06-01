@@ -122,7 +122,7 @@
         vets         (query-fn :get-vets {:pagesize PAGESIZE :page current-page})
         vets-specs   (query-fn :specialties-by-vet-ids {:vetids (map :id vets)})
         vets         (group-properties vets vets-specs :id :id :specialties)]
-    (layout/render request "vets.html"
+    (layout/render request "vets/vetsList.html"
                    (-> {:vets vets}
                        (with-pagination current-page total-items)
                        (tr/with-translation request)))))
