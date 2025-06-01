@@ -3,7 +3,8 @@
    [clojure.edn :as edn]
    [demo.petclinic.web.middleware.exception :as exception]
    [demo.petclinic.web.pages.layout :as layout]
-   [demo.petclinic.web.translations :as tr]
+   [demo.petclinic.web.translations :refer [with-translation]]
+   [demo.petclinic.web.pagination :refer [PAGESIZE parse-page with-pagination]]
    [integrant.core :as ig]
    [reitit.ring.middleware.muuntaja :as muuntaja]
    [reitit.ring.middleware.parameters :as parameters]
@@ -18,24 +19,7 @@
     #(wrap-anti-forgery % {:error-response error-page})))
 
 (defn home [_ request]
-  (layout/render request "home.html" (tr/with-translation {} request)))
-
-(def PAGESIZE 5)
-
-(defn with-pagination
-  "Given a context map `m`, a current page and the total of items, add pagination-related keys to `m`"
-  [m current-page total-items]
-  (let [total-pages (-> total-items (/ PAGESIZE) Math/ceil int)]
-    (merge m
-           {:pagination
-            {:current current-page :total total-pages :pages (next (range (inc total-pages)))}})))
-
-(defn parse-page
-  "Attempts to parse `s` into an integer >= 1. Returns the greatest of 1 and `default` when parsing fails."
-  [s default]
-  (max 1 (try
-           (int (edn/read-string s))
-           (catch Exception _ default))))
+  (layout/render request "home.html" (with-translation {} request)))
 
 (defn group-properties
   "Given maps representing `items` with some `id1` and another list of `items with an `id2` and some other `key`, 'updates' the list of maps with the collection of `:prop`s where `id1` equals `id2`"
@@ -87,7 +71,7 @@
         owners       (group-properties owners pets-by-owner :id :owner_id :name)]
     (condp = (count owners)
       ;; No results: return to search page with error
-      0 (let [m (tr/with-translation {} request)]
+      0 (let [m (with-translation {} request)]
           (layout/render request "owners/ownersFind.html"
                          (merge {:lastName lastName :errors [(get-in m [:t :notFound])]} m)))
 
@@ -98,12 +82,12 @@
       (layout/render request "owners/ownersList.html"
                      (-> {:owners owners}
                          (with-pagination current-page total-items)
-                         (tr/with-translation request))))))
+                         (with-translation request))))))
 
 (defn owner-details [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
   (condp = ownerid
     "find"
-    (layout/render request "owners/ownersFind.html" (tr/with-translation {} request))
+    (layout/render request "owners/ownersFind.html" (with-translation {} request))
 
     ;; Attempt to read the param as an int. If fails or owner not found, show error
     (try
@@ -112,16 +96,16 @@
             pets    (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})]
         (if (nil? owner)
           (throw (Exception.))
-          (layout/render request "owners/ownerDetails.html" (tr/with-translation {:owner owner :pets pets} request))))
+          (layout/render request "owners/ownerDetails.html" (with-translation {:owner owner :pets pets} request))))
       (catch Exception _
-        (layout/error-page (tr/with-translation {:status 404 :message "Owner not found"} request))))))
+        (layout/error-page (with-translation {:status 404 :message "Owner not found"} request))))))
 
 (defn edit-owner-form [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
   (let [ownerid (int (edn/read-string ownerid))
         owner   (query-fn :get-owner {:id ownerid})]
     (if (nil? owner)
       (throw (Exception.))
-      (layout/render request "owners/createOrUpdateOwnerForm.html" (tr/with-translation {:owner owner} request)))))
+      (layout/render request "owners/createOrUpdateOwnerForm.html" (with-translation {:owner owner} request)))))
 
 (defn save-owner
   [{:keys [query-fn]}
@@ -142,7 +126,7 @@
     (layout/render request "vets/vetsList.html"
                    (-> {:vets vets}
                        (with-pagination current-page total-items)
-                       (tr/with-translation request)))))
+                       (with-translation request)))))
 
 ;; Routes
 (defn page-routes [opts]
