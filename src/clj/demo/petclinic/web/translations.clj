@@ -30,6 +30,12 @@
   (let [language (request-language request)]
     (merge m {:t (translations language)})))
 
+(defn translate-key
+  "Find the translation for a single key. If not found, returns (str key)"
+  [request key]
+  (let [m (with-translation {} request)]
+    (get-in m [:t key] (str key))))
+
 (comment
   (:pet (props-as-map "resources/translations/messages_es.properties"))
   (translations "es")
