@@ -71,8 +71,7 @@
         specs [{:vet_id 2 :specialty "radiology"}
                {:vet_id 3 :specialty "dentistry"}
                {:vet_id 3 :specialty "surgery"}]]
-    (group-properties vets specs :id :vet_id :specialty))
-  )
+    (group-properties vets specs :id :vet_id :specialty)))
 
 ;; TODO
 ;; No results => stay if search page with error
@@ -126,9 +125,20 @@
 (defn page-routes [opts]
   [["/" {:get (partial home opts)}]
    ["/vets.html" {:get (partial show-vets opts)}]
-   ["/owners" {:get (partial search-owners opts)}]
-   ["/owners/:ownerid" {:get (partial owner-details opts)}]
+   ["/owners" {}
+    ["" (partial search-owners opts)]
+    ["/:ownerid" {}
+     ["" {:get (partial owner-details opts)}]
+     ["/edit" {:get (fn [& _] (throw (RuntimeException. "Editing not implemented")))}]]]
    ["/oups" {:get (fn [& _] (throw (RuntimeException. "Expected: controller used to showcase what happens when an exception is thrown")))}]])
+
+(comment
+  ;; Troubleshoot routes:
+  (require '[reitit.core :as r])
+  (clojure.pprint/pprint
+   (r/routes (r/router (page-routes {}))))
+  
+  )
 
 (def route-data
   {:middleware
