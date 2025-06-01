@@ -1,15 +1,16 @@
 (ns demo.petclinic.utils)
 
 (defn group-properties
-  "Given maps representing `items` with some `id1` and another list of `items with an `id2` and some other `key`, 'updates' the list of maps with the collection of `:prop`s where `id1` equals `id2`"
-  [items extra-props id1 id2 key]
-  (let [items-by-id (into {} (map (juxt id1 identity) items))]
+  "Given collections of maps `xs` and `ys` with id functions `id1` and `id2`,
+   'updates' the `xs` maps with their corresponding aggregation of `key` applied to `ys`"
+  [xs ys id1 id2 key]
+  (let [items-by-id (into {} (map (juxt id1 identity) xs))]
     (->> (reduce
           (fn [m props]
             (let [k (id2 props)
                   xs (get-in m [k key] [])]
               (assoc-in m [k key] (into xs [(key props)]))))
-          items-by-id extra-props)
+          items-by-id ys)
          vals
          (sort-by :id))))
 
