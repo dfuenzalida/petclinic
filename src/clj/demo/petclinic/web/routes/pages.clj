@@ -105,10 +105,16 @@
     "find"
     (layout/render request "ownersFind.html" (tr/with-translation {} request))
 
-    ;; otherwise expect the ownerid to be a proper int
-    (let [owner (query-fn :get-owner {:id ownerid})
-          pets (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})]
-      (layout/render request "ownerDetails.html" (tr/with-translation {:owner owner :pets pets} request)))))
+    ;; Attempt to read the param as an int. If fails or owner not found, show error
+    (try
+      (let [ownerid (int (edn/read-string ownerid))
+            owner   (query-fn :get-owner {:id ownerid})
+            pets    (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})]
+        (if (nil? owner)
+          (throw (Exception.))
+          (layout/render request "ownerDetails.html" (tr/with-translation {:owner owner :pets pets} request))))
+      (catch Exception _
+        (layout/error-page (tr/with-translation {:status 404 :message "Owner not found"} request))))))
 
 (defn show-vets [{:keys [query-fn]} {{:strs [page]} :query-params :as request}]
   (let [current-page (parse-page page 1)
