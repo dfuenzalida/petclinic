@@ -116,6 +116,23 @@
       (catch Exception _
         (layout/error-page (tr/with-translation {:status 404 :message "Owner not found"} request))))))
 
+(defn edit-owner-form [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
+  (let [ownerid (int (edn/read-string ownerid))
+        owner   (query-fn :get-owner {:id ownerid})]
+    (if (nil? owner)
+      (throw (Exception.))
+      (layout/render request "owners/createOrUpdateOwnerForm.html" (tr/with-translation {:owner owner} request)))))
+
+(defn save-owner
+  [{:keys [query-fn]}
+   {{:keys [ownerid]} :path-params {:strs [firstName lastName address city telephone]} :form-params :as request}]
+  (log/info "@params: " ownerid firstName lastName)
+  ;; When all validations succeed, save and redirect to /owners/:ownerid with a flash message
+  ;; TODO add flash
+  (found (str "/owners/" ownerid))
+  #_(throw (Exception. "Save not implemented")))
+
+
 (defn show-vets [{:keys [query-fn]} {{:strs [page]} :query-params :as request}]
   (let [current-page (parse-page page 1)
         total-items  (:total (query-fn :get-vets-count {}))
@@ -134,8 +151,11 @@
    ["/owners" {}
     ["" (partial search-owners opts)]
     ["/:ownerid" {}
-     ["" {:get (partial owner-details opts)}]
-     ["/edit" {:get (fn [& _] (throw (RuntimeException. "Editing not implemented")))}]]]
+     ["" {:get  (partial owner-details opts)}]
+     ["/pets" {}
+      ["/new" {:get (fn [& _] (throw (RuntimeException. "Pet creation not implemented")))}]]
+     ["/edit" {:get (partial edit-owner-form opts)
+               :post (partial save-owner opts)}]]]
    ["/oups" {:get (fn [& _] (throw (RuntimeException. "Expected: controller used to showcase what happens when an exception is thrown")))}]])
 
 (comment
