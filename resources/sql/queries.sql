@@ -27,3 +27,7 @@ SELECT COUNT(*) AS total FROM owners WHERE last_name LIKE :lastNameLike
 -- :name get-pets-by-owner-ids :? :*
 -- :doc Return all pets for a list of owners
 SELECT p.id AS id, p.name AS name, p.birth_date AS birth_date, t.name AS pet_type, p.owner_id AS owner_id FROM pets p, types t WHERE owner_id IN (:v*:ownerids) AND p.type_id = t.id
+
+-- :name update-owner! :! :n
+-- :doc update an owner
+UPDATE owners SET first_name = :first_name, last_name = :last_name, address = :address, city = :city, telephone = :telephone WHERE id = :id

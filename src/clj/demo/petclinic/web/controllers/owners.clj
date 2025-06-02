@@ -8,10 +8,6 @@
    [ring.util.http-response :refer [found]]
    [clojure.tools.logging :as log]))
 
-;; TODO
-;; No results => stay if search page with error
-;; If searching yields one result, we open the owners detail page
-;; otherwise we show the list of results [implemented]
 (defn search-owners
   [{:keys [query-fn]} {{:strs [lastName page]} :query-params :as request}]
   (let [current-page (parse-page page 1)
@@ -36,7 +32,7 @@
                          (with-pagination current-page total-items)
                          (with-translation request))))))
 
-(defn owner-details [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
+(defn owner-details [{:keys [query-fn]} {{:keys [ownerid]} :path-params {:keys [error message]} :flash :as request}]
   (condp = ownerid
     "find"
     (layout/render request "owners/ownersFind.html" (with-translation {} request))
@@ -48,9 +44,11 @@
             pets    (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})]
         (if (nil? owner)
           (throw (Exception.))
-          (layout/render request "owners/ownerDetails.html" (with-translation {:owner owner :pets pets} request))))
+          (layout/render request "owners/ownerDetails.html"
+                         (with-translation {:owner owner :pets pets :error error :message message} request))))
       (catch Exception _
-        (layout/error-page (with-translation {:status 404 :message "Owner not found"} request))))))
+        (let [not-found-message (translate-key request :notFound)]
+          (layout/error-page (with-translation {:status 404 :message not-found-message} request)))))))
 
 (defn edit-owner-form [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
   (let [ownerid (int (edn/read-string ownerid))
@@ -61,9 +59,31 @@
 
 (defn save-owner
   [{:keys [query-fn]}
-   {{:keys [ownerid]} :path-params {:strs [firstName lastName address city telephone]} :form-params :as request}]
-  (log/info "@params: " ownerid firstName lastName)
-  ;; When all validations succeed, save and redirect to /owners/:ownerid with a flash message
-  ;; TODO add flash
-  (found (str "/owners/" ownerid))
-  #_(throw (Exception. "Save not implemented")))
+   {{:keys [ownerid]} :path-params {:strs [first_name last_name address city telephone]} :form-params :as request}]
+  
+  ;; Form validation. If there are errors, redirect to the edit page with the errors map
+  (let [owner {:id ownerid :first_name first_name :last_name last_name :address address :city city :telephone telephone}
+        errors (cond-> {}
+                 (empty? first_name) (assoc-in [:errors :first_name] "must not be blank")
+                 (empty? last_name) (assoc-in [:errors :last_name] "must not be blank")
+                 (empty? address) (assoc-in [:errors :address] "must not be blank")
+                 (empty? city) (assoc-in [:errors :city] "must not be blank")
+                 (not (re-matches #"\d{10}" telephone)) (assoc-in [:errors :telephone] (translate-key request :telephone.invalid)))]
+
+    (if (= errors {})
+      ;; No errors, update the owner in DB
+      (let [result (try (query-fn :update-owner! owner) (catch Exception _ 0))]
+        (log/debug "Update result:" result)
+        ;; When all validations succeed, save and redirect to /owners/:ownerid with a flash message
+        (let [flash (if (= 1 result) {:message "Owner values updated"} {:error "Error when updating owner"})]
+          (-> (found (str "/owners/" ownerid))
+              (assoc :flash flash))))
+
+      ;; errors found, render the form with the errors
+      (layout/render request "owners/createOrUpdateOwnerForm.html" (-> {:owner owner} (merge errors) (with-translation request))))))
+
+(comment
+  (let [owner {"id" "123" "first_name" "John" "last_name" "Jones"}]
+    (->> (mapv (fn [[k v]] [(keyword k) v]) owner)
+         (into {})))
+  )
