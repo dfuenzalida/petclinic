@@ -60,7 +60,7 @@
 (defn save-owner
   [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
   
-  ;; Form validation. If there are errors, redirect to the edit page with the errors map
+  ;; Form validation
   (let [owner (-> request :form-params keywordize-keys (merge {:id ownerid}))
         {:keys [first_name last_name address city telephone]} owner
         errors (cond-> {}
@@ -71,13 +71,13 @@
                  (not (re-matches #"\d{10}" telephone)) (assoc :telephone (translate-key request :telephone.invalid)))]
 
     (if (empty? errors)
-      ;; No errors, update the owner in DB. update-owner! returns the number of rows updated.
+      ;; No errors, update the owner in DB. `update-owner!` returns the number of rows updated.
       (let [result (try (query-fn :update-owner! owner) (catch Exception _ 0))]
         (log/debug "Update result:" result)
-        ;; When all validations succeed, save and redirect to /owners/:ownerid with a flash message
+        ;; Redirect to `/owners/:ownerid` with message or error if no rows were updated
         (let [flash (if (= 1 result) {:message "Owner values updated"} {:error "Error when updating owner"})]
           (-> (found (str "/owners/" ownerid))
               (assoc :flash flash))))
 
-      ;; errors found, render the form with the errors
+      ;; Errors were found, render the form again with the data and errors
       (layout/render request "owners/createOrUpdateOwnerForm.html" (with-translation {:owner owner :errors errors} request)))))
