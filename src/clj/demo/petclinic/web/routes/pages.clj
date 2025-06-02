@@ -30,7 +30,7 @@
     ["/:ownerid" {}
      ["" {:get  (partial owners/owner-details opts)}]
      ["/pets" {}
-      ["/new" {:get (fn [& _] (throw (RuntimeException. "Pet creation not implemented")))}]
+      ["/new" {:get (partial pets/create-pet-form opts)}]
       ["/:petid/edit" {:get (partial pets/edit-pet-form opts)}]]
      ["/edit" {:get (partial owners/edit-owner-form opts)
                :post (partial owners/save-owner opts)}]]]
