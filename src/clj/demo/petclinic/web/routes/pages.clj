@@ -1,6 +1,7 @@
 (ns demo.petclinic.web.routes.pages
   (:require
    [demo.petclinic.web.controllers.owners :as owners]
+   [demo.petclinic.web.controllers.pets :as pets]
    [demo.petclinic.web.controllers.vets :as vets]
    [demo.petclinic.web.middleware.exception :as exception]
    [demo.petclinic.web.pages.layout :as layout]
@@ -29,7 +30,8 @@
     ["/:ownerid" {}
      ["" {:get  (partial owners/owner-details opts)}]
      ["/pets" {}
-      ["/new" {:get (fn [& _] (throw (RuntimeException. "Pet creation not implemented")))}]]
+      ["/new" {:get (fn [& _] (throw (RuntimeException. "Pet creation not implemented")))}]
+      ["/:petid/edit" {:get (partial pets/edit-pet-form opts)}]]
      ["/edit" {:get (partial owners/edit-owner-form opts)
                :post (partial owners/save-owner opts)}]]]
    ["/oups" {:get (fn [& _] (throw (RuntimeException. "Expected: controller used to showcase what happens when an exception is thrown")))}]])
