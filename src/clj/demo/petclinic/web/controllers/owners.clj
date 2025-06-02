@@ -64,11 +64,11 @@
   (let [owner (-> request :form-params keywordize-keys (merge {:id ownerid}))
         {:keys [first_name last_name address city telephone]} owner
         errors (cond-> {}
-                 (empty? first_name) (assoc-in [:errors :first_name] "must not be blank")
-                 (empty? last_name) (assoc-in [:errors :last_name] "must not be blank")
-                 (empty? address) (assoc-in [:errors :address] "must not be blank")
-                 (empty? city) (assoc-in [:errors :city] "must not be blank")
-                 (not (re-matches #"\d{10}" telephone)) (assoc-in [:errors :telephone] (translate-key request :telephone.invalid)))]
+                 (empty? first_name) (assoc :first_name "must not be blank")
+                 (empty? last_name) (assoc :last_name "must not be blank")
+                 (empty? address) (assoc :address "must not be blank")
+                 (empty? city) (assoc :city "must not be blank")
+                 (not (re-matches #"\d{10}" telephone)) (assoc :telephone (translate-key request :telephone.invalid)))]
 
     (if (empty? errors)
       ;; No errors, update the owner in DB. update-owner! returns the number of rows updated.
@@ -80,4 +80,4 @@
               (assoc :flash flash))))
 
       ;; errors found, render the form with the errors
-      (layout/render request "owners/createOrUpdateOwnerForm.html" (-> {:owner owner} (merge errors) (with-translation request))))))
+      (layout/render request "owners/createOrUpdateOwnerForm.html" (with-translation {:owner owner :errors errors} request)))))
