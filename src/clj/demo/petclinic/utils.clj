@@ -37,3 +37,14 @@
                {:vet_id 3 :specialty "dentistry"}
                {:vet_id 3 :specialty "surgery"}]]
     (group-properties vets specs :id :vet_id :specialty)))
+
+(defn keywordize-keys
+  "Applies `keyword` to the keys of a map `m`"
+  [m]
+  (into {} (map (fn [[k v]] [(keyword k) v]) m)))
+ 
+(comment
+  (let [owner {"id" 123 "first_name" "John" "last_name" "Jones"}]
+    (keywordize-keys owner))
+
+  )

@@ -1,7 +1,7 @@
 (ns demo.petclinic.web.controllers.owners
   (:require
    [clojure.edn :as edn]
-   [demo.petclinic.utils :refer [group-properties]]
+   [demo.petclinic.utils :refer [group-properties keywordize-keys]]
    [demo.petclinic.web.pages.layout :as layout]
    [demo.petclinic.web.translations :refer [translate-key with-translation]]
    [demo.petclinic.web.pagination :refer [PAGESIZE parse-page with-pagination]]
@@ -58,11 +58,11 @@
       (layout/render request "owners/createOrUpdateOwnerForm.html" (with-translation {:owner owner} request)))))
 
 (defn save-owner
-  [{:keys [query-fn]}
-   {{:keys [ownerid]} :path-params {:strs [first_name last_name address city telephone]} :form-params :as request}]
+  [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
   
   ;; Form validation. If there are errors, redirect to the edit page with the errors map
-  (let [owner {:id ownerid :first_name first_name :last_name last_name :address address :city city :telephone telephone}
+  (let [owner (-> request :form-params keywordize-keys (merge {:id ownerid}))
+        {:keys [first_name last_name address city telephone]} owner
         errors (cond-> {}
                  (empty? first_name) (assoc-in [:errors :first_name] "must not be blank")
                  (empty? last_name) (assoc-in [:errors :last_name] "must not be blank")
@@ -70,8 +70,8 @@
                  (empty? city) (assoc-in [:errors :city] "must not be blank")
                  (not (re-matches #"\d{10}" telephone)) (assoc-in [:errors :telephone] (translate-key request :telephone.invalid)))]
 
-    (if (= errors {})
-      ;; No errors, update the owner in DB
+    (if (empty? errors)
+      ;; No errors, update the owner in DB. update-owner! returns the number of rows updated.
       (let [result (try (query-fn :update-owner! owner) (catch Exception _ 0))]
         (log/debug "Update result:" result)
         ;; When all validations succeed, save and redirect to /owners/:ownerid with a flash message
@@ -81,9 +81,3 @@
 
       ;; errors found, render the form with the errors
       (layout/render request "owners/createOrUpdateOwnerForm.html" (-> {:owner owner} (merge errors) (with-translation request))))))
-
-(comment
-  (let [owner {"id" "123" "first_name" "John" "last_name" "Jones"}]
-    (->> (mapv (fn [[k v]] [(keyword k) v]) owner)
-         (into {})))
-  )
