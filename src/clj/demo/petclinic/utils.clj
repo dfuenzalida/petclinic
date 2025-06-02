@@ -1,8 +1,9 @@
 (ns demo.petclinic.utils)
 
 (defn group-properties
-  "Given collections of maps `xs` and `ys` with id functions `id1` and `id2`,
-   'updates' the `xs` maps with their corresponding aggregation of `key` applied to `ys`"
+  "Given collections of maps `xs` and `ys` with functions `id1` and `id2`,
+   'updates' the `xs` maps with the aggregation of `key` applied to their corresponding `ys`
+   where `(= (id1 x) (id2 y))`"
   [xs ys id1 id2 key]
   (let [items-by-id (into {} (map (juxt id1 identity) xs))]
     (->> (reduce
