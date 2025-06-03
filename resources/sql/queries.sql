@@ -42,4 +42,8 @@ UPDATE owners SET first_name = :first_name, last_name = :last_name, address = :a
 
 -- :name update-pet! :! :n
 -- :doc update a pet
-UPDATE pets SET name = :name, birth_date = :birthDate, type_id = :typeId WHERE id = :id AND owner_id = :ownerid
+UPDATE pets SET name = :name, birth_date = :birth_date, type_id = :type_id WHERE id = :id AND owner_id = :ownerid
+
+-- :name create-pet! :! :n
+-- :doc creates a pet
+INSERT INTO pets VALUES (default, :name, :birth_date, :type_id, :ownerid);

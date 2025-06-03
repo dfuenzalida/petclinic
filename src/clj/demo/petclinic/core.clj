@@ -42,7 +42,6 @@
 
 (comment
   ;; Eval these to debug SQL queries
-
   (defn log-sqlvec [sqlvec]
     (log/info (->> sqlvec
                    (map #(clojure.string/replace (or % "") #"\n" ""))
@@ -57,4 +56,5 @@
   (defmethod hugsql.core/hugsql-command-fn :! [_sym] `log-command-fn)
   (defmethod hugsql.core/hugsql-command-fn :<! [_sym] `log-command-fn)
   (defmethod hugsql.core/hugsql-command-fn :? [_sym] `log-command-fn)
+
   )

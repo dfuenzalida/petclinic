@@ -30,15 +30,16 @@
 (defn update-pet! [{:keys [query-fn]} {{:keys [ownerid petid]} :path-params :as request}]
   (let [owner   (query-fn :get-owner {:id ownerid})
         pet (-> request :form-params keywordize-keys (merge {:id petid :ownerid ownerid}))
-        {:keys [name birthDate type]} pet
-        typeId (->> (query-fn :get-types {}) (filter #(= type (:name %))) first :id int)
+        {:keys [name birth_date type]} pet
+        types (query-fn :get-types {})
+        type_id (->> types (filter #(= type (:name %))) first :id)
 
         ;; Validate Pet properties
         errors (cond-> {}
                  (empty? name) (assoc :name "must not be blank")
-                 (empty? birthDate) (assoc :birth_date "must not be blank")
+                 (empty? birth_date) (assoc :birth_date "must not be blank")
                  (empty? type) (assoc :type "must not be blank"))
-        pet    (assoc pet :typeId typeId)]
+        pet    (assoc pet :type_id type_id)]
 
     (if (empty? errors)
       ;; No errors, update the owner in DB. `update-owner!` returns the number of rows updated.
@@ -50,7 +51,31 @@
 
       ;; Errors were found, render the form again with the data and errors
       (layout/render request "pets/createOrUpdatePetForm.html"
-                     (with-translation {:pet pet :owner owner :errors errors} request)))))
+                     (with-translation {:pet pet :owner owner :types types :errors errors} request)))))
 
 (defn create-pet! [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
-  )
+  (let [owner   (query-fn :get-owner {:id ownerid})
+        pet (-> request :form-params keywordize-keys (merge {:ownerid ownerid}))
+        {:keys [name birth_date type]} pet
+        types (query-fn :get-types {})
+        type_id (->> types (filter #(= type (:name %))) first :id)
+
+        ;; Validate Pet properties
+        errors (cond-> {}
+                 (empty? name) (assoc :name "must not be blank")
+                 (empty? birth_date) (assoc :birth_date "must not be blank")
+                 (empty? type) (assoc :type "must not be blank"))
+        pet    (assoc pet :type_id type_id)]
+
+    (if (empty? errors)
+      ;; No errors, update the owner in DB. `update-owner!` returns the number of rows updated.
+      (let [_ (log/info "@@@ will create pet:" pet)
+            result (try (query-fn :create-pet! pet) (catch Exception _ 0))]
+        ;; Redirect to `/owners/:ownerid` with message or error if no rows were updated
+        (let [flash (if (= 1 result) {:message "Pet details have been updated"} {:error "Error when updating pet"})]
+          (-> (found (str "/owners/" ownerid))
+              (assoc :flash flash))))
+
+      ;; Errors were found, render the form again with the data and errors
+      (layout/render request "pets/createOrUpdatePetForm.html"
+                     (with-translation {:pet pet :owner owner :types types :errors errors :new true} request)))))
