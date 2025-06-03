@@ -30,10 +30,12 @@
     ["/:ownerid" {}
      ["" {:get  (partial owners/owner-details opts)}]
      ["/pets" {}
-      ["/new" {:get (partial pets/create-pet-form opts)}]
-      ["/:petid/edit" {:get (partial pets/edit-pet-form opts)}]]
+      ["/new" {:get (partial pets/create-pet-form opts)
+               :post (partial pets/create-pet! opts)}]
+      ["/:petid/edit" {:get (partial pets/edit-pet-form opts)
+                       :post (partial pets/update-pet! opts)}]]
      ["/edit" {:get (partial owners/edit-owner-form opts)
-               :post (partial owners/save-owner opts)}]]]
+               :post (partial owners/save-owner! opts)}]]]
    ["/oups" {:get (fn [& _] (throw (RuntimeException. "Expected: controller used to showcase what happens when an exception is thrown")))}]])
 
 (comment

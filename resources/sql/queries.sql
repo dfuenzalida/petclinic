@@ -39,3 +39,7 @@ SELECT p.id AS id, p.name AS name, p.birth_date AS birth_date, t.name AS pet_typ
 -- :name update-owner! :! :n
 -- :doc update an owner
 UPDATE owners SET first_name = :first_name, last_name = :last_name, address = :address, city = :city, telephone = :telephone WHERE id = :id
+
+-- :name update-pet! :! :n
+-- :doc update a pet
+UPDATE pets SET name = :name, birth_date = :birthDate, type_id = :typeId WHERE id = :id AND owner_id = :ownerid

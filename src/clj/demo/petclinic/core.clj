@@ -39,3 +39,22 @@
 (defn -main [& _]
   (start-app)
   (.addShutdownHook (Runtime/getRuntime) (Thread. (fn [] (stop-app) (shutdown-agents)))))
+
+(comment
+  ;; Eval these to debug SQL queries
+
+  (defn log-sqlvec [sqlvec]
+    (log/info (->> sqlvec
+                   (map #(clojure.string/replace (or % "") #"\n" ""))
+                   (clojure.string/join " ; "))))
+
+  (defn log-command-fn [this db sqlvec options]
+    (log-sqlvec sqlvec)
+    (condp contains? (:command options)
+      #{:!} (hugsql.adapter/execute this db sqlvec options)
+      #{:? :<!} (hugsql.adapter/query this db sqlvec options)))
+
+  (defmethod hugsql.core/hugsql-command-fn :! [_sym] `log-command-fn)
+  (defmethod hugsql.core/hugsql-command-fn :<! [_sym] `log-command-fn)
+  (defmethod hugsql.core/hugsql-command-fn :? [_sym] `log-command-fn)
+  )

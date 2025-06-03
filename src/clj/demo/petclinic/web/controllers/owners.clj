@@ -57,7 +57,7 @@
       (throw (Exception.))
       (layout/render request "owners/createOrUpdateOwnerForm.html" (with-translation {:owner owner} request)))))
 
-(defn save-owner
+(defn save-owner!
   [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
   
   ;; Form validation

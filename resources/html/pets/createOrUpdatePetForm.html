@@ -10,7 +10,9 @@
     <span>{{t.pet}}</span>
   </h2>
   <form class="form-horizontal" method="post">
-    <input type="hidden" name="id" value="1" />
+    {% csrf-field %}
+    <!-- SHOULDN'T NEED THIS HIDDEN FIELD IF PETID IS IN THE URL -->
+    <!-- <input type="hidden" name="id" value="" /> -->
     <div class="form-group has-feedback">
       <div class="form-group">
         <label class="col-sm-2 control-label">{{t.owner}}</label>
