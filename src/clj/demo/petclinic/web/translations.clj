@@ -1,5 +1,6 @@
 (ns demo.petclinic.web.translations
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [clojure.tools.logging :as log]))
 
 (defn request-language [request]
   (let [accept-language (get-in request [:headers "accept-language"] "en")]
@@ -17,14 +18,16 @@
 (def default-translations
   "resources/translations/messages.properties")
 
-;; TODO memoize this
-(defn translations [language]
-  (let [default (props-as-map default-translations)]
-    (try
-      (let [lang-path (format "resources/translations/messages_%s.properties" language)
-            transmap (props-as-map lang-path)]
-        (merge default transmap))
-      (catch Exception _ default))))
+(def translations
+  (memoize
+   (fn [language]
+     (log/info "Loading translations for language" language)
+     (let [default (props-as-map default-translations)]
+       (try
+         (let [lang-path (format "resources/translations/messages_%s.properties" language)
+               transmap (props-as-map lang-path)]
+           (merge default transmap))
+         (catch Exception _ default))))))
 
 (defn with-translation [m request]
   (let [language (request-language request)]
