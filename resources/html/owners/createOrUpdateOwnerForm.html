@@ -6,7 +6,10 @@
 
 {% block content %}
 
-<h2>{{t.owner}}</h2>
+<h2>
+    {% if new %}{{t.new}}{% endif %}    
+    <span>{{t.owner}}</span>
+</h2>
   <form class="form-horizontal" id="add-owner-form" method="post">
     {% csrf-field %}
     <div class="form-group has-feedback">

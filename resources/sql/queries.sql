@@ -46,4 +46,8 @@ UPDATE pets SET name = :name, birth_date = :birth_date, type_id = :type_id WHERE
 
 -- :name create-pet! :! :n
 -- :doc creates a pet
-INSERT INTO pets VALUES (default, :name, :birth_date, :type_id, :ownerid);
+INSERT INTO pets VALUES (default, :name, :birth_date, :type_id, :ownerid)
+
+-- :name create-owner! :insert :1
+-- :doc creates an owner. Uses :insert :raw to retrieve the last inserted ID
+INSERT INTO owners VALUES (default, :first_name, :last_name, :address, :city, :telephone)

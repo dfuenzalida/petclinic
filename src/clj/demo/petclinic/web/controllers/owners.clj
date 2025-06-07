@@ -37,6 +37,10 @@
     "find"
     (layout/render request "owners/ownersFind.html" (with-translation {} request))
 
+    "new"
+    (layout/render request "owners/createOrUpdateOwnerForm.html"
+                   (with-translation {:owner {} :new true} request))
+
     ;; Attempt to read the param as an int. If fails or owner not found, show error
     (try
       (let [ownerid (int (edn/read-string ownerid))
@@ -57,7 +61,7 @@
       (throw (Exception.))
       (layout/render request "owners/createOrUpdateOwnerForm.html" (with-translation {:owner owner} request)))))
 
-(defn save-owner!
+(defn update-owner!
   [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
   
   ;; Form validation
@@ -76,6 +80,30 @@
         (log/debug "Update result:" result)
         ;; Redirect to `/owners/:ownerid` with message or error if no rows were updated
         (let [flash (if (= 1 result) {:message "Owner values updated"} {:error "Error when updating owner"})]
+          (-> (found (str "/owners/" ownerid))
+              (assoc :flash flash))))
+
+      ;; Errors were found, render the form again with the data and errors
+      (layout/render request "owners/createOrUpdateOwnerForm.html" (with-translation {:owner owner :errors errors} request)))))
+
+(defn create-owner! [{:keys [query-fn]} request]
+  ;; Form validation
+  (let [owner (-> request :form-params keywordize-keys)
+        {:keys [first_name last_name address city telephone]} owner
+        errors (cond-> {}
+                 (empty? first_name) (assoc :first_name "must not be blank")
+                 (empty? last_name) (assoc :last_name "must not be blank")
+                 (empty? address) (assoc :address "must not be blank")
+                 (empty? city) (assoc :city "must not be blank")
+                 (not (re-matches #"\d{10}" telephone)) (assoc :telephone (translate-key request :telephone.invalid)))]
+
+    (if (empty? errors)
+      ;; No errors, update the owner in DB. `create-owner!` returns the new owner ID created
+      (let [result (try (query-fn :create-owner! owner) (catch Exception _ {}))
+            ownerid (:id result)]
+        (log/debug "Update result:" result)
+        ;; Redirect to `/owners/:ownerid` with message or error if no rows were updated
+        (let [flash (if (empty? result) {:error "Error Creating Owner"} {:message "New Owner Created"})]
           (-> (found (str "/owners/" ownerid))
               (assoc :flash flash))))
 
