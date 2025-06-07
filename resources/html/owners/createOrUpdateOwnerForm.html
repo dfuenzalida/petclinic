@@ -81,8 +81,9 @@
 
         <div class="form-group">
             <div class="col-sm-offset-2 col-sm-10">
-                <button class="btn btn-primary" type="submit">{{t.updateOwner}}</button>
+                <button class="btn btn-primary" type="submit">{% if new %}{{t.addOwner}}{% else %}{{t.updateOwner}}{% endif %}</button>
             </div>
         </div>
+    </div>
   </form>
   {% endblock %}

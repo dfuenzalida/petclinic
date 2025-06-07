@@ -61,9 +61,9 @@
       (throw (Exception.))
       (layout/render request "owners/createOrUpdateOwnerForm.html" (with-translation {:owner owner} request)))))
 
-(defn update-owner!
-  [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
-  
+(defn upsert-owner!
+  [create? {:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
+
   ;; Form validation
   (let [owner (-> request :form-params keywordize-keys (merge {:id ownerid}))
         {:keys [first_name last_name address city telephone]} owner
@@ -76,36 +76,24 @@
 
     (if (empty? errors)
       ;; No errors, update the owner in DB. `update-owner!` returns the number of rows updated.
-      (let [result (try (query-fn :update-owner! owner) (catch Exception _ 0))]
+      (let [result (try (if create?
+                          (query-fn :create-owner! owner) ;; create returns a map of {:id new-row-id}
+                          {:numrows (query-fn :update-owner! owner)})
+                        (catch Exception _ {}))
+            ownerid (if create? (:id result) ownerid)]
         (log/debug "Update result:" result)
         ;; Redirect to `/owners/:ownerid` with message or error if no rows were updated
-        (let [flash (if (= 1 result) {:message "Owner values updated"} {:error "Error when updating owner"})]
+        (let [flash (if (empty? result)
+                      {:error "Error when updating owner"}
+                      {:message (if create? "New Owner Created" "Owner values updated")})]
           (-> (found (str "/owners/" ownerid))
               (assoc :flash flash))))
 
       ;; Errors were found, render the form again with the data and errors
-      (layout/render request "owners/createOrUpdateOwnerForm.html" (with-translation {:owner owner :errors errors} request)))))
+      (layout/render request "owners/createOrUpdateOwnerForm.html" (with-translation {:owner owner :errors errors :new create?} request)))))
 
-(defn create-owner! [{:keys [query-fn]} request]
-  ;; Form validation
-  (let [owner (-> request :form-params keywordize-keys)
-        {:keys [first_name last_name address city telephone]} owner
-        errors (cond-> {}
-                 (empty? first_name) (assoc :first_name "must not be blank")
-                 (empty? last_name) (assoc :last_name "must not be blank")
-                 (empty? address) (assoc :address "must not be blank")
-                 (empty? city) (assoc :city "must not be blank")
-                 (not (re-matches #"\d{10}" telephone)) (assoc :telephone (translate-key request :telephone.invalid)))]
+(defn update-owner! [opts request]
+  (upsert-owner! false opts request))
 
-    (if (empty? errors)
-      ;; No errors, update the owner in DB. `create-owner!` returns the new owner ID created
-      (let [result (try (query-fn :create-owner! owner) (catch Exception _ {}))
-            ownerid (:id result)]
-        (log/debug "Update result:" result)
-        ;; Redirect to `/owners/:ownerid` with message or error if no rows were updated
-        (let [flash (if (empty? result) {:error "Error Creating Owner"} {:message "New Owner Created"})]
-          (-> (found (str "/owners/" ownerid))
-              (assoc :flash flash))))
-
-      ;; Errors were found, render the form again with the data and errors
-      (layout/render request "owners/createOrUpdateOwnerForm.html" (with-translation {:owner owner :errors errors} request)))))
+(defn create-owner! [opts request]
+  (upsert-owner! true opts request))
