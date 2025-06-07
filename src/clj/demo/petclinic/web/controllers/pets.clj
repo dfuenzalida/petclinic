@@ -34,24 +34,23 @@
         {:keys [name birth_date type]} pet
         types (query-fn :get-types {})
         type_id (->> types (filter #(= type (:name %))) first :id)
+        pet    (assoc pet :type_id type_id)
 
         ;; Validate Pet properties
         errors (cond-> {}
                  (empty? name) (assoc :name "must not be blank")
                  (empty? birth_date) (assoc :birth_date "must not be blank")
-                 (empty? type) (assoc :type "must not be blank"))
-        pet    (assoc pet :type_id type_id)]
+                 (empty? type) (assoc :type "must not be blank"))]
 
     (if (empty? errors)
       ;; No validation errors, persist create/update to the DB
       (let [db-fn  (if create? :create-pet! :update-pet!)
-            result (try (query-fn db-fn pet) (catch Exception _ 0))]
-        ;; Redirect to `/owners/:ownerid` with OK `message` or `error` if no rows were updated
-        (let [flash (if (= 1 result)
-                      {:message (if create? "New Pet has been Added" "Pet details have been updated")}
-                      {:error "Error when updating pet"})]
-          (-> (found (str "/owners/" ownerid))
-              (assoc :flash flash))))
+            result (try (query-fn db-fn pet) (catch Exception _ 0))
+            flash (if (= 1 result) ;; Redirect to `/owners/:ownerid` with OK `message` or `error` if no rows were updated
+                    {:message (if create? "New Pet has been Added" "Pet details have been updated")}
+                    {:error "Error when updating pet"})]
+        (-> (found (str "/owners/" ownerid))
+            (assoc :flash flash)))
 
       ;; Errors were found, render the form again with the data and errors
       (layout/render request "pets/createOrUpdatePetForm.html"
