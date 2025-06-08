@@ -1,6 +1,7 @@
 (ns demo.petclinic.web.controllers.pets
    (:require
     [clojure.edn :as edn]
+    [clojure.instant :as instant]
     [demo.petclinic.utils :refer [group-properties keywordize-keys]]
     [demo.petclinic.web.pages.layout :as layout]
     [demo.petclinic.web.translations :refer [translate-key with-translation]]
@@ -61,3 +62,17 @@
 
 (defn create-pet! [{:keys [query-fn]} request]
   (upsert-pet! true query-fn request))
+
+(defn new-visit-form [{:keys [query-fn]} {{:keys [ownerid petid]} :path-params :as request}]
+  (let [ownerid (int (edn/read-string ownerid))
+        owner   (query-fn :get-owner {:id ownerid})
+        petid (int (edn/read-string petid))
+        pet   (query-fn :get-pet {:id petid :ownerid ownerid})
+        types (query-fn :get-types {})
+        pet   (assoc pet :type (->> (filter #(= (:type_id pet) (:id %)) types) first :name))
+        visits (query-fn :get-visits-by-pet-ids {:petids [petid]})
+        visit  {:visit_date (->> (java.time.Instant/now) str instant/read-instant-timestamp) :description ""}]
+    (if (some nil? [owner pet])
+      (throw (Exception.))
+      (layout/render request "pets/createOrUpdateVisitForm.html"
+                     (with-translation {:owner owner :pet pet :visit visit :visits visits} request)))))

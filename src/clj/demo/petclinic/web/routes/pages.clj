@@ -33,6 +33,7 @@
      ["/pets" {}
       ["/new" {:get (partial pets/create-pet-form opts)
                :post (partial pets/create-pet! opts)}]
+      ["/:petid/visits/new" {:get (partial pets/new-visit-form opts)}] 
       ["/:petid/edit" {:get (partial pets/edit-pet-form opts)
                        :post (partial pets/update-pet! opts)}]]
      ["/edit" {:get (partial owners/edit-owner-form opts)
