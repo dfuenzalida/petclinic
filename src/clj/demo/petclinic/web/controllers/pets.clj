@@ -1,10 +1,9 @@
 (ns demo.petclinic.web.controllers.pets
    (:require
     [clojure.edn :as edn]
-    [clojure.instant :as instant]
-    [demo.petclinic.utils :refer [group-properties keywordize-keys]]
+    [demo.petclinic.utils :refer [keywordize-keys]]
     [demo.petclinic.web.pages.layout :as layout]
-    [demo.petclinic.web.translations :refer [translate-key with-translation]]
+    [demo.petclinic.web.translations :refer [with-translation]]
     [ring.util.http-response :refer [found]]
     [clojure.tools.logging :as log]))
 
