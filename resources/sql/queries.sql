@@ -51,3 +51,7 @@ INSERT INTO pets VALUES (default, :name, :birth_date, :type_id, :ownerid)
 -- :name create-owner! :insert :1
 -- :doc creates an owner. Uses :insert :raw to retrieve the last inserted ID
 INSERT INTO owners VALUES (default, :first_name, :last_name, :address, :city, :telephone)
+
+-- :name get-visits-by-pet-ids :? :*
+-- :doc get the list of visits for some pets identified by their ids
+SELECT pet_id, visit_date, description FROM visits WHERE pet_id IN (:v*:petids) ORDER BY pet_id, visit_date ASC

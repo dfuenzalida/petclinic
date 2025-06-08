@@ -45,7 +45,13 @@
     (try
       (let [ownerid (int (edn/read-string ownerid))
             owner   (query-fn :get-owner {:id ownerid})
-            pets    (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})]
+            pets    (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})
+            visits  (->> (query-fn :get-visits-by-pet-ids {:petids (mapv :id pets)})
+                         (group-by :pet_id))
+            pets-by-id (->> (map (juxt :id identity) pets) (into {}))
+            pets    (->> (reduce (fn [state [petid vs]]
+                                   (assoc-in state [petid :visits] vs)) pets-by-id visits)
+                         vals)]
         (if (nil? owner)
           (throw (Exception.))
           (layout/render request "owners/ownerDetails.html"
@@ -53,6 +59,26 @@
       (catch Exception _
         (let [not-found-message (translate-key request :notFound)]
           (layout/error-page (with-translation {:status 404 :message not-found-message} request)))))))
+
+(comment
+  (let [visits-by-petid {7 [{:pet_id 7, :visit_date #inst "2013-01-01", :description "rabies shot"}
+                            {:pet_id 7, :visit_date #inst "2013-01-04", :description "spayed"}],
+                         8 [{:pet_id 8, :visit_date #inst "2013-01-02", :description "rabies shot"}
+                            {:pet_id 8, :visit_date #inst "2013-01-03", :description "neutered"}]}
+
+        pets             [{:id 7, :name "Samantha", :birth_date #inst "2012-09-04", :pet_type "cat", :owner_id 6}
+                          {:id 8, :name "Max", :birth_date #inst "2012-09-04", :pet_type "cat", :owner_id 6}]
+
+        pets-by-id      (->> (map (juxt :id identity) pets) (into {}))
+        ]
+
+    ;; Add the visits to each pet under :visits
+    (->> (reduce (fn [state [petid vs]] (assoc-in state [petid :visits] vs)) pets-by-id visits-by-petid)
+         vals)
+    #_(->> (map (juxt :id identity) pets) (into {}))
+    )
+
+  )
 
 (defn edit-owner-form [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
   (let [ownerid (int (edn/read-string ownerid))

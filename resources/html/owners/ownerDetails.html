@@ -65,6 +65,13 @@
             <th>{{t.description}}</th>
             </tr>
         </thead>
+
+        {% for visit in pet.visits %}
+        <tr>
+            <td>{{visit.visit_date}}</td>
+            <td>{{visit.description}}</td>
+        </tr>
+        {% endfor %}
         
         <tr>
             <td><a href="{{owner.id}}/pets/{{pet.id}}/edit">{{t.editPet}}</a></td>
