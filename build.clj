@@ -1,6 +1,7 @@
 (ns build
   (:require [clojure.string :as string]
-            [clojure.tools.build.api :as b]))
+            [clojure.tools.build.api :as b]
+            [sass4clj.main :as sass]))
 
 (def lib 'demo/petclinic)
 (def main-cls (string/join "." (filter some? [(namespace lib) (name lib) "core"])))
@@ -27,6 +28,8 @@
                :target-dir class-dir}))
 
 (defn uber [_]
+  (println "Compiling SASS...")
+  (sass/-main "--source-paths" "./resources/scss" "-t" "./resources/public/css")
   (println "Compiling Clojure...")
   (b/compile-clj {:basis basis
                   :src-dirs ["src/clj" "resources" "env/prod/resources" "env/prod/clj"]

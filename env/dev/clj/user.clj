@@ -11,7 +11,8 @@
     [integrant.repl.state :as state]
     [kit.api :as kit]
     [lambdaisland.classpath.watch-deps :as watch-deps]      ;; hot loading for deps
-    [demo.petclinic.core :refer [start-app]]))
+    [demo.petclinic.core :refer [start-app]]
+    [sass4clj.main :as sass]))
 
 ;; uncomment to enable hot loading for deps
 (watch-deps/start! {:aliases [:dev :test]})
@@ -41,7 +42,12 @@
 
 (def refresh repl/refresh)
 
+(defn compile-sass []
+  (println "Compiling SASS..")
+  (sass/-main "--source-paths" "./resources/scss" "-t" "./resources/public/css"))
 
+;; Evaluate this line when you make changes to the SASS/SCSS files
+(compile-sass)
 
 (comment
   (go)

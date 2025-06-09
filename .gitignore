@@ -22,3 +22,6 @@ modules/
 # Dev DBs
 petclinic_dev.db
 petclinic_test.db
+
+# CSS files are now compiled from SCSS
+*.css
