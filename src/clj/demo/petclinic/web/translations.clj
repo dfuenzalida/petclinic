@@ -6,10 +6,9 @@
   (let [accept-language (->> (get-in request [:headers "accept-language"])
                              (re-seq #"[a-z]+")
                              first)
-        lang-param (get-in request [:params :lang] "en")]
-    (or lang-param accept-language)))
+        lang-param (get-in request [:params :lang])]
+    (or lang-param accept-language "en")))
 
-;; TODO move and use delay/memoize to compute only once
 (defn props-as-map [filename]
   (let [props (java.util.Properties.)]
     (with-open [rdr (io/reader filename)]
