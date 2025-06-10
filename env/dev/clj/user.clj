@@ -21,10 +21,15 @@
 
 (add-tap (bound-fn* clojure.pprint/pprint))
 
+(defn compile-sass []
+  (println "Compiling SASS..")
+  (sass/-main "--source-paths" "./resources/scss" "-t" "./resources/public/css"))
+
 (defn dev-prep!
   []
   (integrant.repl/set-prep! (fn []
                               (-> (demo.petclinic.config/system-config {:profile :dev})
+                                  (compile-sass)
                                   (ig/expand)))))
 
 (defn test-prep!
@@ -42,12 +47,8 @@
 
 (def refresh repl/refresh)
 
-(defn compile-sass []
-  (println "Compiling SASS..")
-  (sass/-main "--source-paths" "./resources/scss" "-t" "./resources/public/css"))
-
 ;; Evaluate this line when you make changes to the SASS/SCSS files
-(compile-sass)
+;; (compile-sass)
 
 (comment
   (go)
