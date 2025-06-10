@@ -3,8 +3,11 @@
             [clojure.tools.logging :as log]))
 
 (defn request-language [request]
-  (let [accept-language (get-in request [:headers "accept-language"] "en")]
-    (first (re-seq #"[a-z]+" accept-language))))
+  (let [accept-language (->> (get-in request [:headers "accept-language"])
+                             (re-seq #"[a-z]+")
+                             first)
+        lang-param (get-in request [:params :lang] "en")]
+    (or lang-param accept-language)))
 
 ;; TODO move and use delay/memoize to compute only once
 (defn props-as-map [filename]
