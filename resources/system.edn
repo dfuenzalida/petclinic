@@ -55,5 +55,5 @@
                      :db {:datasource #ig/ref :db.sql/connection},
                      :migrate-on-init? true}
  :db.sql/connection #profile {:dev {:jdbc-url "jdbc:h2:mem:5c98d278-6944-44bd-abb6-f256a5c9f693"}, ;;{:jdbc-url "jdbc:sqlite:petclinic_dev.db"},
-                              :test {:jdbc-url "jdbc:sqlite:petclinic_test.db"},
+                              :test {:jdbc-url "jdbc:h2:mem:5c98d278-6944-44bd-abb6-f256a5c9f693" #_"jdbc:sqlite:petclinic_test.db"},
                               :prod {:jdbc-url #env JDBC_URL}}}
