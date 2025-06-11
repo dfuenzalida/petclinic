@@ -57,6 +57,23 @@
     </div>
   </div>
 
+  <script language="javascript">
+    // If a "lang=XX" param has been sent on the URL, add it to every link
+    var langParamPos = document.location.href.indexOf("lang=");
+    if (langParamPos > 0) {
+      langParam = document.location.href.substring(langParamPos, langParamPos + 7 /* "lang=XX" */);
+
+      // Fix the links
+      var links = document.getElementsByTagName("a");
+      for (var i = 0; i < links.length; i++) {
+        var href = links[i].href;
+        var toAdd = "";
+        if (href.indexOf("?") < 0){ toAdd = "?"} else { toAdd = "&" };
+        if (href.indexOf(langParam) < 0) toAdd += langParam;
+        links[i].href += toAdd;
+      }
+    }
+  </script>
 
 </body>
 
