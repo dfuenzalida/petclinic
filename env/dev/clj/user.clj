@@ -29,7 +29,7 @@
   []
   (integrant.repl/set-prep! (fn []
                               (-> (demo.petclinic.config/system-config {:profile :dev})
-                                  (compile-sass)
+                                  ;; (compile-sass)
                                   (ig/expand)))))
 
 (defn test-prep!
