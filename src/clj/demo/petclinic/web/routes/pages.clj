@@ -26,15 +26,20 @@
   [["/" {:get (partial home opts)}]
    ["/vets.html" {:get (partial vets/show-vets opts)}]
    ["/owners" {}
+    ["/find" {:get (partial owners/owners-find-form opts)
+              :conflicting true}]
+    ["/new" {:get (partial owners/owners-new-form opts)
+             :post (partial owners/create-owner! opts)
+             :conflicting true}]
     ["" (partial owners/search-owners opts)]
     ["/:ownerid" {}
      ["" {:get  (partial owners/owner-details opts)
-          :post (partial owners/create-owner! opts)}]
+          :conflicting true}]
      ["/pets" {}
       ["/new" {:get (partial pets/create-pet-form opts)
                :post (partial pets/create-pet! opts)}]
       ["/:petid/visits/new" {:get (partial pets/new-visit-form opts)
-                             :post (partial pets/create-visit! opts)}] 
+                             :post (partial pets/create-visit! opts)}]
       ["/:petid/edit" {:get (partial pets/edit-pet-form opts)
                        :post (partial pets/update-pet! opts)}]]
      ["/edit" {:get (partial owners/edit-owner-form opts)
@@ -44,9 +49,21 @@
 (comment
   ;; Troubleshoot routes:
   (require '[reitit.core :as r])
+  (require '[reitit.spec :as rs])
+  (require '[reitit.dev.pretty :as pretty])
   (clojure.pprint/pprint
    (r/routes (r/router (page-routes {}))))
-  
+
+  (r/router (page-routes {}) {:validate rs/validate
+                              :exception pretty/exception})
+
+  ;;
+
+  (let [routes [["/owners/find" {:conflicting true}]
+                ["/owners/:ownerid" {:conflicting true}]]]
+    (r/router routes))
+
+  ;; end comment
   )
 
 (def route-data

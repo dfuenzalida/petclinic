@@ -1,6 +1,7 @@
 (ns demo.petclinic.web.controllers.owners
   (:require
    [clojure.edn :as edn]
+   [clojure.string :as s]
    [demo.petclinic.utils :refer [group-properties keywordize-keys]]
    [demo.petclinic.web.pages.layout :as layout]
    [demo.petclinic.web.translations :refer [translate-key with-translation]]
@@ -16,49 +17,50 @@
         owners       (query-fn :get-owners {:lastNameLike lastNameLike :pagesize PAGESIZE :page current-page})
         pets-by-owner (query-fn :get-pets-by-owner-ids {:ownerids (map :id owners)})
         owners       (group-properties owners pets-by-owner :id :owner_id :name)]
-    (condp = (count owners)
+    (cond
       ;; No results: return to search page with error
-      0 (let [m        (with-translation {} request)
-              notFound (translate-key request :notFound)]
-          (layout/render request "owners/ownersFind.html"
-                         (merge {:lastName lastName :errors [notFound]} m)))
+      (zero? (count owners))
+      (let [m        (with-translation {} request)
+            notFound (translate-key request :notFound)]
+        (layout/render request "owners/ownersFind.html"
+                       (merge {:lastName lastName :errors [notFound]} m)))
 
-      ;; 1 result: redirect to owner details
-      1 (found (->> owners first :id (str "/owners/")))
+      ;; If the request was a search by lastName AND only 1 owner was found: redirect to that owner's details
+      (and (not (s/blank? lastName)) (= 1 (count owners)))
+      (found (->> owners first :id (str "/owners/")))
 
-      ;; More than 1 result: show list of owners
+      ;; else: show list of owners
+      :else
       (layout/render request "owners/ownersList.html"
                      (-> {:owners owners}
                          (with-pagination current-page total-items)
                          (with-translation request))))))
 
+(defn owners-find-form [_opts request]
+  (layout/render request "owners/ownersFind.html" (with-translation {} request)))
+
+(defn owners-new-form [_opts request]
+  (layout/render request "owners/createOrUpdateOwnerForm.html"
+                 (with-translation {:owner {} :new true} request)))
+
 (defn owner-details [{:keys [query-fn]} {{:keys [ownerid]} :path-params {:keys [error message]} :flash :as request}]
-  (condp = ownerid
-    "find"
-    (layout/render request "owners/ownersFind.html" (with-translation {} request))
-
-    "new"
-    (layout/render request "owners/createOrUpdateOwnerForm.html"
-                   (with-translation {:owner {} :new true} request))
-
-    ;; Attempt to read the param as an int. If fails or owner not found, show error
-    (try
-      (let [ownerid (int (edn/read-string ownerid))
-            owner   (query-fn :get-owner {:id ownerid})
-            pets    (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})
-            visits  (->> (query-fn :get-visits-by-pet-ids {:petids (mapv :id pets)})
-                         (group-by :pet_id))
-            pets-by-id (->> (map (juxt :id identity) pets) (into {}))
-            pets    (->> (reduce (fn [state [petid vs]]
-                                   (assoc-in state [petid :visits] vs)) pets-by-id visits)
-                         vals)]
-        (if (nil? owner)
-          (throw (Exception.))
-          (layout/render request "owners/ownerDetails.html"
-                         (with-translation {:owner owner :pets pets :error error :message message} request))))
-      (catch Exception _
-        (let [not-found-message (translate-key request :notFound)]
-          (layout/error-page (with-translation {:status 404 :message not-found-message} request)))))))
+  (try
+    (let [ownerid (int (edn/read-string ownerid))
+          owner   (query-fn :get-owner {:id ownerid})
+          pets    (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})
+          visits  (->> (query-fn :get-visits-by-pet-ids {:petids (mapv :id pets)})
+                       (group-by :pet_id))
+          pets-by-id (->> (map (juxt :id identity) pets) (into {}))
+          pets    (->> (reduce (fn [state [petid vs]]
+                                 (assoc-in state [petid :visits] vs)) pets-by-id visits)
+                       vals)]
+      (if (nil? owner)
+        (throw (Exception.))
+        (layout/render request "owners/ownerDetails.html"
+                       (with-translation {:owner owner :pets pets :error error :message message} request))))
+    (catch Exception _
+      (let [not-found-message (translate-key request :notFound)]
+        (layout/error-page (with-translation {:status 404 :message not-found-message} request))))))
 
 (comment
   (let [visits-by-petid {7 [{:pet_id 7, :visit_date #inst "2013-01-01", :description "rabies shot"}
