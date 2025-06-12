@@ -10,7 +10,7 @@
 
 (use-fixtures :once (system-fixture))
 
-(deftest health-request-test []
+(deftest vets-controller-test []
   (testing "Vets list page 1"
     (let [handler (:handler/ring (system-state))
           params {}

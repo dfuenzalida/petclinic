@@ -7,7 +7,7 @@
 
 (use-fixtures :once (system-fixture))
 
-(deftest health-request-test []
+(deftest routes-pages-test []
   (testing "Welcome page"
     (let [handler (:handler/ring (system-state))
           params {}
