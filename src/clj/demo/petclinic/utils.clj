@@ -15,36 +15,7 @@
          vals
          (sort-by :id))))
 
-(comment
-  ;; TODO create a test with this
-  (let [vets [{:id 1 :first_name "James" :last_name "Carter"}
-              {:id 2 :first_name "Helen" :last_name "Leary"}
-              {:id 3 :first_name "Linda" :last_name "Douglas"}]
-        specs [{:vet_id 2 :specialty "radiology"}
-               {:vet_id 3 :specialty "dentistry"}
-               {:vet_id 3 :specialty "surgery"}]
-        vets-by-id (into {} (map (juxt :id identity) vets))]
-    (reduce (fn [m {:keys [vet_id specialty]}]
-              (let [v (get-in m [vet_id :specialties] '())]
-                (update-in m [vet_id :specialties] conj specialty)))
-            vets-by-id specs)
-    #_(group-by :id vets))
-
-  (let [vets [{:id 1 :first_name "James" :last_name "Carter"}
-              {:id 2 :first_name "Helen" :last_name "Leary"}
-              {:id 3 :first_name "Linda" :last_name "Douglas"}]
-        specs [{:vet_id 2 :specialty "radiology"}
-               {:vet_id 3 :specialty "dentistry"}
-               {:vet_id 3 :specialty "surgery"}]]
-    (group-properties vets specs :id :vet_id :specialty)))
-
 (defn keywordize-keys
   "Applies `keyword` to the keys of a map `m`"
   [m]
   (into {} (map (fn [[k v]] [(keyword k) v]) m)))
- 
-(comment
-  (let [owner {"id" 123 "first_name" "John" "last_name" "Jones"}]
-    (keywordize-keys owner))
-
-  )
