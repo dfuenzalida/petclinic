@@ -26,13 +26,12 @@
            luminus/ring-ttl-session {:mvn/version "0.3.3"}
            io.github.kit-clj/kit-sql-conman {:mvn/version "1.10.4"}
            io.github.kit-clj/kit-sql-migratus {:mvn/version "1.0.4"}
-           org.xerial/sqlite-jdbc {:mvn/version "3.46.0.0"}
            com.h2database/h2 {:mvn/version "2.3.232"} ;; Same as Spring Petclinic 3.4.0
 
            ;; Front-end
            ring-webjars/ring-webjars {:mvn/version "0.3.0"}
            deraen/sass4clj {:mvn/version "0.6.0"}
-           org.webjars/bootstrap {:mvn/version "5.3.3"}
+           org.webjars/bootstrap {:mvn/version "5.3.6"}
            org.webjars/font-awesome {:mvn/version "4.7.0"}
            }
  :aliases {:build {:deps {io.github.clojure/tools.build {:mvn/version "0.9.6"}
