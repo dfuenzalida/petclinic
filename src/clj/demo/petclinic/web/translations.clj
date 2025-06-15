@@ -9,16 +9,19 @@
         lang-param (get-in request [:params :lang])]
     (or lang-param accept-language "en")))
 
-(defn props-as-map [filename]
-  (let [props (java.util.Properties.)]
-    (with-open [rdr (io/reader filename)]
+(defn props-as-map
+  "Load a properties file from the classpath and return it as a map of keywords to strings."
+  [filename]
+  (let [cloader (.getContextClassLoader (Thread/currentThread))
+        props (java.util.Properties.)]
+    (with-open [rdr (io/reader (.getResourceAsStream cloader filename))]
       (.load props rdr))
     (->> (map (juxt keyword #(.getProperty props %))
               (.stringPropertyNames props))
          (into {}))))
 
 (def default-translations
-  "resources/translations/messages.properties")
+  "translations/messages.properties")
 
 (def translations
   (memoize
@@ -26,7 +29,7 @@
      (log/info "Loading translations for language" language)
      (let [default (props-as-map default-translations)]
        (try
-         (let [lang-path (format "resources/translations/messages_%s.properties" language)
+         (let [lang-path (format "translations/messages_%s.properties" language)
                transmap (props-as-map lang-path)]
            (merge default transmap))
          (catch Exception _ default))))))
