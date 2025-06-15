@@ -4,7 +4,7 @@
            :prod :prod}
 
  :server/http
- {:port #long #or [#env PORT 3000]
+ {:port #long #or [#env PORT #profile {:dev 3000 :test 3001 :prod 8080}]
   :host #or [#env HTTP_HOST "0.0.0.0"]
   :handler #ig/ref :handler/ring}
 
