@@ -89,12 +89,15 @@ Run `clj -M:test` from the command line to run the tests or use the REPL/Editor 
 
 ## Compiling the CSS
 
-Run the following commands in the REPL (e.g. `clj -M:dev`):
+If you need to test changes to the `.scss` files, run the following commands in the REPL (e.g. `clj -M:dev`):
 
 ```clojure
 (require '[sass4clj.main :as sass])
 (sass/-main "--source-paths" "./resources/scss" "-t" "./resources/public/css")
 ```
+
+The CSS files are automatically compiled when building the uberjar and container image.
+
 
 ## REPLs
 
