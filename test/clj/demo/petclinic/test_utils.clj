@@ -21,11 +21,17 @@
       :response
       (update :body (fnil bs/to-string ""))))
 
-(defn GET [app path params headers]
+(defn send-request [verb app path params headers]
   (-> (p/session app)
       (p/request path
-                 :request-method :get
+                 :request-method verb
                  :content-type "application/edn"
                  :headers headers
                  :params params)
       (get-response)))
+
+(defn GET [app path params headers]
+  (send-request :get app path params headers))
+
+(defn POST [app path params headers]
+  (send-request :post app path params headers))
