@@ -1,8 +1,8 @@
 # PetClinic Sample Application
 
-This petclinic is an implementation of the [Spring Petcinic](https://github.com/spring-projects/spring-petclinic) using Clojure and the Kit Framework with the default modules trying to stick to its defaults.
+This petclinic is an implementation of the [Spring Petcinic](https://github.com/spring-projects/spring-petclinic) using Clojure and the [Kit Framework](https://kit-clj.github.io/) with the default modules and trying to stick to its defaults.
 
-I implemented this version to brush up my knowledge of web development in Clojure, with an application that was not trivial but not too big either while trying to keep feature parity as close as possible.
+I implemented this version to refresh my knowledge of web development in Clojure and the development experience using [Calva](https://calva.io), with an application that was not trivial but not too big either while trying to keep feature parity with the orignal PetClinic as close as possible.
 
 ## Highlights
 
@@ -11,14 +11,15 @@ I implemented this version to brush up my knowledge of web development in Clojur
   * Custom functions for pagination and i10n/language support (uses the language translation files from Spring Petclinic)
 * SCSS support via [sass4clj](https://github.com/Deraen/sass4clj/) (uses the same SCSS files from the Spring Petclinic with minimal changes)
 * Web assets (Bootstrap/Font Awesome) served with [ring webjars](https://github.com/weavejester/ring-webjars)
+* For simplicity, the only database engine is H2 (e.g. no PostgreSQL, etc.)
 * Spring logo replaced with an awesome emoji-in-SVG logo.
 
 ## Requirements
 
-* Java (17+ preferred)
+* Java (version 17+ preferred)
 * Clojure ([install guide](https://clojure.org/guides/install_clojure))
 
-Optional
+**Optional**
 
 * Docker/Podman (to build a container with this app)
 * GNU Make to run the commands from the `Makefile`: `make run`, `make repl`, `make test` or `make uberjar`
@@ -26,7 +27,7 @@ Optional
 
 ## Running the Petclinic locally
 
-Start a [REPL](#repls) in your editor or terminal of choice.
+The natural way for Clojure development is to start a [REPL](#repls) for this project in your editor or terminal of choice.
 
 Start the server with:
 
@@ -83,18 +84,22 @@ To support other database engines, the following changes are needed:
 * Update SQL DDL/inserts in the migration files using the SQL dialect of choice (these can be borrowed from the [Spring Petclinic files](https://github.com/spring-projects/spring-petclinic/tree/main/src/main/resources/db)).
 * Update the queries in [resources/sql/queries.sql](resources/sql/queries.sql) with the SQL dialect of choice.
 
-## Test the application
+## Running the tests
 
-Run `clj -M:test` from the command line to run the tests or use the REPL/Editor integrations to run the tests for a given namespace.
+Run `clj -M:test` from the terminal, or use the REPL/Editor integrations to run the tests for a given namespace.
 
 ## Compiling the CSS
 
-If you need to test changes to the `.scss` files, run the following commands in the REPL (e.g. `clj -M:dev`):
+You need to compile the SCSS files at least once to generate CSS files to see the correct styling of the web pages.
+
+During development, you can run the following commands in the REPL (e.g. `clj -M:dev`):
 
 ```clojure
 (require '[sass4clj.main :as sass])
 (sass/-main "--source-paths" "./resources/scss" "-t" "./resources/public/css")
 ```
+
+If you make changes to the SCSS files, you'll need to compile them manually again (there's no watcher installed for them yet).
 
 The CSS files are automatically compiled when building the uberjar and container image.
 
