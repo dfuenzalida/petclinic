@@ -100,7 +100,7 @@
                  (empty? last_name) (assoc :last_name "must not be blank")
                  (empty? address) (assoc :address "must not be blank")
                  (empty? city) (assoc :city "must not be blank")
-                 (not (re-matches #"\d{10}" telephone)) (assoc :telephone (translate-key request :telephone.invalid)))]
+                 (not (re-matches #"\d{10}" (str telephone))) (assoc :telephone (translate-key request :telephone.invalid)))]
 
     (if (empty? errors)
       ;; No errors, update the owner in DB. `update-owner!` returns the number of rows updated.

@@ -3,9 +3,8 @@
    [clojure.test :refer [deftest testing is use-fixtures]]
    [clojure.string :refer [includes?]]
    [clojure.tools.logging :as log]
-   [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
    [demo.petclinic.web.pagination :as pagination]
-   [demo.petclinic.test-utils :refer [system-state system-fixture GET POST]]))
+   [demo.petclinic.test-utils :refer [system-state system-fixture GET POST get-cookie get-csrf-token]]))
 
 (use-fixtures :once (system-fixture))
 
@@ -73,6 +72,19 @@
       (is (includes? body ">Telephone</label>"))
       ;;
       ))
+
+  (testing "Owners creation form with missing required fields"
+    (let [handler (:handler/ring (system-state))
+          get-response (GET handler "/owners/new" {} {})
+          token (get-csrf-token get-response)
+          cookie (get-cookie get-response)
+          headers {:x-csrf-token token :Cookie cookie}
+          params {:first_name "" :last_name "" :address "" :city "" :telephone ""}
+          response (POST handler "/owners/new" params headers)
+          body (:body response)]
+      (is (= 200 (:status response)))
+      (is (includes? body "must not be blank"))
+      (is (includes? body "Telephone must be a 10-digit number"))))
 
   ;;
   )

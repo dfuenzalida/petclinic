@@ -1,5 +1,6 @@
 (ns demo.petclinic.test-utils
   (:require
+    [clojure.tools.logging :as log]
     [demo.petclinic.core :as core]
     [peridot.core :as p]
     [byte-streams :as bs]
@@ -17,6 +18,7 @@
     (core/stop-app)))
 
 (defn get-response [ctx]
+  ;; (log/info "@@@ get-response request" (-> ctx :request (update :body (fnil bs/to-string ""))))
   (-> ctx
       :response
       (update :body (fnil bs/to-string ""))))
@@ -35,3 +37,10 @@
 
 (defn POST [app path params headers]
   (send-request :post app path params headers))
+
+(defn get-cookie [response]
+  (-> response :headers (get "Set-Cookie") first))
+
+(defn get-csrf-token [response]
+  (let [field-regex #"name=\"__anti-forgery-token\" type=\"hidden\" value=\"([A-Za-z0-9+/=]+)\""]
+    (second (re-find field-regex (:body response)))))
