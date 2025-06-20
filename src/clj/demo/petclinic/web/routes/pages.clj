@@ -25,6 +25,7 @@
 ;; Routes
 (defn page-routes [opts]
   [["/" {:get (partial home opts)}]
+   ["/vets" {:get (partial vets/show-vets-data opts)}]
    ["/vets.html" {:get (partial vets/show-vets opts)}]
    ["/owners" {}
     ["/find" {:get (partial owners/owners-find-form opts)
