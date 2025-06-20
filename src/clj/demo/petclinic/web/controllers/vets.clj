@@ -3,7 +3,7 @@
    [clojure.data.json :as json]
    [clojure.data.xml :as xml]
    [clojure.set :refer [rename-keys]]
-   [demo.petclinic.utils :refer [group-properties]]
+   [demo.petclinic.utils :refer [aggregate-by-key]]
    [demo.petclinic.web.pages.layout :as layout]
    [demo.petclinic.web.pagination :refer [PAGESIZE parse-page with-pagination]]
    [demo.petclinic.web.translations :refer [with-translation]]
@@ -11,8 +11,9 @@
 
 (defn vets-with-specialties [query-fn pagesize page]
   (let [vets         (query-fn :get-vets {:pagesize pagesize :page page})
-        vets-specs   (query-fn :specialties-by-vet-ids {:vetids (map :id vets)})]
-    (group-properties vets vets-specs :id :id :specialties)))
+        vets-specs   (->> (query-fn :specialties-by-vet-ids {:vetids (map :id vets)})
+                          (sort-by :name))]
+    (aggregate-by-key vets :id vets-specs :id :specialties)))
 
 (defn show-vets [{:keys [query-fn]} {{:strs [page]} :query-params :as request}]
   (let [current-page (parse-page page 1)
@@ -50,5 +51,18 @@
                (xml/element :lastName {} lastName)
                (xml/element :specialties {}
                             (mapv
-                             #(xml/element :specialty {} (xml/element :name {} %))
+                             #(xml/element :specialty {}
+                                           (xml/element :id {} (:id %))
+                                           (xml/element :name {} (:name %)))
                              specialties))))
+
+(comment
+  (require '[demo.petclinic.test-utils :refer [system-state]])
+
+  (let [query-fn   (:db.sql/query-fn (system-state))
+        vets       (query-fn :get-vets {:pagesize 100 :page 1})
+        vets-specs (query-fn :specialties-by-vet-ids {:vetids (map :id vets)})]
+    (aggregate-by-key vets :id vets-specs :id :specialties)
+    ;;
+    )
+  )

@@ -20,7 +20,11 @@
     <td>{{vet.first_name}} {{vet.last_name}}</td>
     <td>
         {% if vet.specialties %}
-          <span>{{ vet.specialties|sort|join:", " }}</span>
+          <span>
+          {% for specialty in vet.specialties %}
+            {{ specialty.name }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+          </span>
         {% else %}
         <span>{{t.none}}</span>
         {% endif %}

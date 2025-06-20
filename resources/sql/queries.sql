@@ -9,7 +9,7 @@ SELECT COUNT(*) AS total FROM vets
 
 -- :name specialties-by-vet-ids :? :*
 -- :doc given a list of vet ids, get their specialties
-SELECT vs.vet_id AS id, s.name AS specialties FROM specialties s, vet_specialties vs WHERE vet_id IN (:v*:vetids) AND vs.specialty_id = s.id
+SELECT vs.vet_id AS id, s.name AS name FROM specialties s, vet_specialties vs WHERE vet_id IN (:v*:vetids) AND vs.specialty_id = s.id
 
 -- :name get-owner :? :1
 -- :doc returns a single owner by their id

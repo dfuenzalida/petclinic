@@ -2,7 +2,7 @@
   (:require
    [clojure.edn :as edn]
    [clojure.string :as s]
-   [demo.petclinic.utils :refer [group-properties keywordize-keys]]
+   [demo.petclinic.utils :refer [aggregate-by-key keywordize-keys]]
    [demo.petclinic.web.pages.layout :as layout]
    [demo.petclinic.web.translations :refer [translate-key with-translation]]
    [demo.petclinic.web.pagination :refer [PAGESIZE parse-page with-pagination]]
@@ -14,9 +14,8 @@
   (let [current-page (parse-page page 1)
         lastNameLike (str lastName "%")
         total-items  (:total (query-fn :get-owners-count {:lastNameLike lastNameLike}))
-        owners       (query-fn :get-owners {:lastNameLike lastNameLike :pagesize PAGESIZE :page current-page})
-        pets-by-owner (query-fn :get-pets-by-owner-ids {:ownerids (map :id owners)})
-        owners       (group-properties owners pets-by-owner :id :owner_id :name)]
+        owners       (query-fn :get-owners {:lastNameLike lastNameLike :pagesize PAGESIZE :page current-page})]
+
     (cond
       ;; No results: return to search page with error
       (zero? (count owners))
@@ -29,12 +28,14 @@
       (and (not (s/blank? lastName)) (= 1 (count owners)))
       (found (->> owners first :id (str "/owners/")))
 
-      ;; else: show list of owners
+      ;; else: show list of owners with their pets
       :else
-      (layout/render request "owners/ownersList.html"
-                     (-> {:owners owners}
-                         (with-pagination current-page total-items)
-                         (with-translation request))))))
+      (let [pets   (query-fn :get-pets-by-owner-ids {:ownerids (map :id owners)})
+            owners (aggregate-by-key owners :id pets :owner_id :pets)]
+        (layout/render request "owners/ownersList.html"
+                       (-> {:owners owners}
+                           (with-pagination current-page total-items)
+                           (with-translation request)))))))
 
 (defn owners-find-form [_opts request]
   (layout/render request "owners/ownersFind.html" (with-translation {} request)))
@@ -48,12 +49,9 @@
     (let [ownerid (int (edn/read-string ownerid))
           owner   (query-fn :get-owner {:id ownerid})
           pets    (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})
-          visits  (->> (query-fn :get-visits-by-pet-ids {:petids (mapv :id pets)})
-                       (group-by :pet_id))
-          pets-by-id (->> (map (juxt :id identity) pets) (into {}))
-          pets    (->> (reduce (fn [state [petid vs]]
-                                 (assoc-in state [petid :visits] vs)) pets-by-id visits)
-                       vals)]
+          visits  (query-fn :get-visits-by-pet-ids {:petids (mapv :id pets)})
+          pets    (aggregate-by-key pets :id visits :pet_id :visits)]
+
       (if (nil? owner)
         (throw (Exception.))
         (layout/render request "owners/ownerDetails.html"
@@ -61,26 +59,6 @@
     (catch Exception _
       (let [not-found-message (translate-key request :notFound)]
         (layout/error-page (with-translation {:status 404 :message not-found-message} request))))))
-
-(comment
-  (let [visits-by-petid {7 [{:pet_id 7, :visit_date #inst "2013-01-01", :description "rabies shot"}
-                            {:pet_id 7, :visit_date #inst "2013-01-04", :description "spayed"}],
-                         8 [{:pet_id 8, :visit_date #inst "2013-01-02", :description "rabies shot"}
-                            {:pet_id 8, :visit_date #inst "2013-01-03", :description "neutered"}]}
-
-        pets             [{:id 7, :name "Samantha", :birth_date #inst "2012-09-04", :pet_type "cat", :owner_id 6}
-                          {:id 8, :name "Max", :birth_date #inst "2012-09-04", :pet_type "cat", :owner_id 6}]
-
-        pets-by-id      (->> (map (juxt :id identity) pets) (into {}))
-        ]
-
-    ;; Add the visits to each pet under :visits
-    (->> (reduce (fn [state [petid vs]] (assoc-in state [petid :visits] vs)) pets-by-id visits-by-petid)
-         vals)
-    #_(->> (map (juxt :id identity) pets) (into {}))
-    )
-
-  )
 
 (defn edit-owner-form [{:keys [query-fn]} {{:keys [ownerid]} :path-params :as request}]
   (let [ownerid (int (edn/read-string ownerid))
@@ -118,7 +96,8 @@
               (assoc :flash flash))))
 
       ;; Errors were found, render the form again with the data and errors
-      (layout/render request "owners/createOrUpdateOwnerForm.html" (with-translation {:owner owner :errors errors :new create?} request)))))
+      (layout/render request "owners/createOrUpdateOwnerForm.html"
+                     (with-translation {:owner owner :errors errors :new create?} request)))))
 
 (defn update-owner! [opts request]
   (upsert-owner! false opts request))
