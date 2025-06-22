@@ -26,7 +26,7 @@
                        (with-pagination current-page total-items)
                        (with-translation request)))))
 
-(declare vet-to-xml)
+(declare to-xml)
 
 (defn show-vets-data [{:keys [query-fn]} {{:strs [accept]} :headers}]
   (let [total-items (:total (query-fn :get-vets-count {}))
@@ -47,18 +47,14 @@
           (http-response/content-type "application/edn"))
 
       :else
-      (-> (with-out-str (xml/emit (xml/element :vetList {} (mapv vet-to-xml vets)) *out*))
-          (http-response/ok)
+      (-> {:vetsList (map #(hash-map :vet %) vets)}
+          to-xml
+          xml/emit-str
+          http-response/ok
           (http-response/content-type "application/xhtml+xml")))))
 
-(defn vet-to-xml [{:keys [id firstName lastName specialties]}]
-  (xml/element :vet {}
-               (xml/element :id {} id)
-               (xml/element :firstName {} firstName)
-               (xml/element :lastName {} lastName)
-               (xml/element :specialties {}
-                            (mapv
-                             #(xml/element :specialty {}
-                                           (xml/element :id {} (:id %))
-                                           (xml/element :name {} (:name %)))
-                             specialties))))
+(defn to-xml [x]
+  (cond
+    (map? x) (map (fn [[k v]] (xml/element k {} (to-xml v))) x)
+    (coll? x) (map to-xml x)
+    :else x))
