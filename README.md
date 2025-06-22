@@ -90,6 +90,8 @@ To support other database engines, the following changes are needed:
 
 Run `clj -M:test` from the terminal, or use the REPL/Editor integrations to run the tests for a given namespace.
 
+For running tests on controllers from your editor, you'll want to start the application as mentioned previously.
+
 ## Compiling the CSS
 
 You need to compile the SCSS files at least once to generate CSS files to see the correct styling of the web pages.
