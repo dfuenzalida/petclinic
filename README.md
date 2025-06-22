@@ -29,11 +29,13 @@ I implemented this version to refresh my knowledge of web development in Clojure
 
 The natural way for Clojure development is to start a [REPL](#repls) for this project in your editor or terminal of choice.
 
-Start the server with:
+Start the server at the REPL with:
 
 ```clojure
 (go)
 ```
+
+If you use an editor, after the REPL starts, open the file `env/dev/clj/user.clj` and evaluate the file. Then you can evaluate the expression `(go)` in the file to launch the server.
 
 The website will be available at http://localhost:3000/ and the default API is available under http://localhost:3000/api
 
