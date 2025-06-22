@@ -42,9 +42,10 @@
       (is (= 200 (:status response)))
       (is (= "application/json" (get-in response [:headers "Content-Type"])))
       (let [vets (-> response :body (json/read-str :key-fn keyword) :vetList)]
-        (is (= {:id 1 :firstName "James" :lastName "Carter" :specialties []} (->> vets first)))
-        (is (= {:id 2 :firstName "Helen" :lastName "Leary" :specialties [{:id 1 :name "radiology"}]}
-               (->> vets second))))))
+        (is (= (first vets)
+               {:id 1 :firstName "James" :lastName "Carter" :specialties []}))
+        (is (= (second vets)
+               {:id 2 :firstName "Helen" :lastName "Leary" :specialties [{:id 1 :name "radiology"}]})))))
 
   ;;
   )
