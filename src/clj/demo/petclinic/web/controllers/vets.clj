@@ -13,7 +13,9 @@
   (let [vets         (query-fn :get-vets {:pagesize pagesize :page page})
         vets-specs   (->> (query-fn :specialties-by-vet-ids {:vetids (map :id vets)})
                           (sort-by :name))]
-    (aggregate-by-key vets :id vets-specs :id :specialties)))
+    (->> (aggregate-by-key vets :id vets-specs :vet_id :specialties)
+         ;; Remove the :vet_id property from the specialties
+         (mapv (fn [vet] (update-in vet [:specialties] (fn [ss] (mapv #(dissoc % :vet_id) ss))))))))
 
 (defn show-vets [{:keys [query-fn]} {{:strs [page]} :query-params :as request}]
   (let [current-page (parse-page page 1)

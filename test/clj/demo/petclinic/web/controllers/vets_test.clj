@@ -1,5 +1,6 @@
 (ns demo.petclinic.web.controllers.vets-test
   (:require
+   [clojure.data.json :as json]
    [clojure.test :refer [deftest testing is use-fixtures]]
    [clojure.string :refer [includes?]]
    [demo.petclinic.web.pagination :as pagination]
@@ -31,4 +32,19 @@
       (is (includes? (:body response) "<a href=\"?page=1\" title=\"Previous\" class=\"fa fa-step-backward\"></a>"))
       (dorun
        (for [name (drop pagination/PAGESIZE vet-names)]
-         (is (includes? (:body response) (format "<td>%s</td>" name))))))))
+         (is (includes? (:body response) (format "<td>%s</td>" name)))))))
+
+  (testing "Vets data in JSON format"
+    (let [handler (:handler/ring (system-state))
+          params {}
+          headers {:accept "application/json"}
+          response (GET handler "/vets" params headers)]
+      (is (= 200 (:status response)))
+      (is (= "application/json" (get-in response [:headers "Content-Type"])))
+      (let [vets (-> response :body (json/read-str :key-fn keyword) :vetList)]
+        (is (= {:id 1 :firstName "James" :lastName "Carter" :specialties []} (->> vets first)))
+        (is (= {:id 2 :firstName "Helen" :lastName "Leary" :specialties [{:id 1 :name "radiology"}]}
+               (->> vets second))))))
+
+  ;;
+  )
