@@ -19,15 +19,15 @@
   <tr>
     <td>{{vet.first_name}} {{vet.last_name}}</td>
     <td>
-        {% if vet.specialties %}
+        {% ifequal 0 vet.specialties|count %}
+        <span>{{t.none}}</span>
+        {% else %}
           <span>
           {% for specialty in vet.specialties %}
             {{ specialty.name }}{% if not forloop.last %}, {% endif %}
           {% endfor %}
           </span>
-        {% else %}
-        <span>{{t.none}}</span>
-        {% endif %}
+        {% endifequal %}
     </td>
   </tr>
   {% endfor %}
