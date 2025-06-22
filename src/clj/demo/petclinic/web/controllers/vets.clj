@@ -41,6 +41,11 @@
           (http-response/ok)
           (http-response/content-type "application/json"))
 
+      (= accept "application/edn")
+      (-> (pr-str {:vetList vets})
+          (http-response/ok)
+          (http-response/content-type "application/edn"))
+
       :else
       (-> (with-out-str (xml/emit (xml/element :vetList {} (mapv vet-to-xml vets)) *out*))
           (http-response/ok)
@@ -57,14 +62,3 @@
                                            (xml/element :id {} (:id %))
                                            (xml/element :name {} (:name %)))
                              specialties))))
-
-(comment
-  (require '[demo.petclinic.test-utils :refer [system-state]])
-
-  (let [query-fn   (:db.sql/query-fn (system-state))
-        vets       (query-fn :get-vets {:pagesize 100 :page 1})
-        vets-specs (query-fn :specialties-by-vet-ids {:vetids (map :id vets)})]
-    (aggregate-by-key vets :id vets-specs :id :specialties)
-    ;;
-    )
-  )

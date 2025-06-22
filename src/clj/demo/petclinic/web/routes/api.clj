@@ -3,6 +3,7 @@
     [demo.petclinic.web.controllers.health :as health]
     [demo.petclinic.web.middleware.exception :as exception]
     [demo.petclinic.web.middleware.formats :as formats]
+    [demo.petclinic.web.controllers.vets :as vets]
     [integrant.core :as ig]
     [reitit.coercion.malli :as malli]
     [reitit.ring.coercion :as coercion]
@@ -32,7 +33,7 @@
                 exception/wrap-exception]})
 
 ;; Routes
-(defn api-routes [_opts]
+(defn api-routes [opts]
   [["/swagger.json"
     {:get {:no-doc  true
            :swagger {:info {:title "demo.petclinic API"}}
@@ -41,7 +42,9 @@
     ;; note that use of the var is necessary
     ;; for reitit to reload routes without
     ;; restarting the system
-    {:get #'health/healthcheck!}]])
+    {:get #'health/healthcheck!}]
+   ["/vets" {:get (partial vets/show-vets-data opts)}]
+   ])
 
 (derive :reitit.routes/api :reitit/routes)
 
