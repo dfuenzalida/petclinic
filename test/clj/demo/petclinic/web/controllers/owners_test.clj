@@ -5,7 +5,7 @@
    [clojure.tools.logging :as log]
    [demo.petclinic.web.pagination :as pagination]
    [demo.petclinic.test-utils :refer [system-state system-fixture GET POST get-cookie get-csrf-token]]
-   [ring.mock.request :as mock]))   
+   [ring.mock.request :as mock]))
 
 (use-fixtures :once (system-fixture))
 
