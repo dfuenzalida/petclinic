@@ -16,8 +16,7 @@
         props (java.util.Properties.)]
     (with-open [rdr (io/reader (.getResourceAsStream cloader filename))]
       (.load props rdr))
-    (->> (map (juxt keyword #(.getProperty props %))
-              (.stringPropertyNames props))
+    (->> (map (juxt keyword #(.getProperty props %)) (.stringPropertyNames props))
          (into {}))))
 
 (def default-translations

@@ -1,7 +1,8 @@
 (ns demo.petclinic.web.translations-test
   (:require
    [demo.petclinic.web.translations :refer [default-translations props-as-map request-language translations translate-key with-translation]]
-   [clojure.test :refer [deftest are is]]))
+   [clojure.java.io :as io]
+   [clojure.test :refer [deftest are is testing]]))
 
 (deftest request-language-tests
   (are [expected request] (= expected (request-language request))
@@ -32,3 +33,16 @@
     "Bienvenido" {:headers {"accept-language" "fr-CH"} :params {:lang "es"}} :welcome
     ;;
     ))
+
+(deftest translations-file-tests
+  (testing "Check that all translations files have the same keys"
+    (let [folder (io/file "resources/translations")
+          files  (->> (file-seq folder)
+                      (filter #(and (.isFile %) (.endsWith (.getName %) ".properties")))
+                      (map #(.getName %))
+                      (into (sorted-set)))
+          files (disj files "messages_en.properties") ;; this file is empty on purpose, so we exclude it
+          keys  (->> files
+                     (map #(props-as-map (str "translations/" %)))
+                     (map #(into (sorted-set) (keys %))))]
+      (is (true? (apply = keys))))))
