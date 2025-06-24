@@ -34,7 +34,7 @@ SELECT * FROM types ORDER BY name ASC
 
 -- :name get-pets-by-owner-ids :? :*
 -- :doc Return all pets for a list of owners
-SELECT p.id AS id, p.name AS name, p.birth_date AS birth_date, t.name AS pet_type, p.owner_id AS owner_id FROM pets p, types t WHERE owner_id IN (:v*:ownerids) AND p.type_id = t.id ORDER BY p.name ASC
+SELECT p.id AS id, p.name AS name, p.birth_date AS birth_date, p.type_id AS type_id, t.name AS pet_type, p.owner_id AS owner_id FROM pets p, types t WHERE owner_id IN (:v*:ownerids) AND p.type_id = t.id ORDER BY p.name ASC
 
 -- :name update-owner! :! :n
 -- :doc update an owner
