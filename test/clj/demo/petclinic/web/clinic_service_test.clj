@@ -1,7 +1,8 @@
 (ns demo.petclinic.web.clinic-service-test
   (:require
    [clojure.test :refer [deftest testing is use-fixtures]]
-   [demo.petclinic.test-utils :refer [system-state system-fixture]]))
+   [demo.petclinic.test-utils :refer [system-state system-fixture]]
+   [demo.petclinic.web.controllers.vets :as vets]))
 
 (use-fixtures :once (system-fixture))
 
@@ -43,10 +44,13 @@
     (is (= "Franklin" (:last_name owner)))
 
     ;; Update the owner's last name
-    (let [updated-owner (update owner :last_name #(str % "x"))]
+    (let [updated-owner (update owner :last_name str "x")]
       (query-fn :update-owner! updated-owner)
       (let [updated-owner-from-db (query-fn :get-owner {:id 1})]
-        (is (= (str (:last_name owner) "x") (:last_name updated-owner-from-db)))))))
+        (is (= (str (:last_name owner) "x") (:last_name updated-owner-from-db)))))
+
+    ;; Restore the original owner so can run the tests multiple times in dev
+    (query-fn :update-owner! owner)))
 
 (deftest should-find-all-pet-types
   (let [query-fn (:db.sql/query-fn (system-state))
@@ -54,3 +58,35 @@
         pet-types-by-id (group-by :id pet-types)]
     (is (= (first (get pet-types-by-id 1)) {:id 1 :name "cat"}))
     (is (= (first (get pet-types-by-id 4)) {:id 4 :name "snake"}))))
+
+(deftest should-insert-pet-into-database-and-generate-id
+  (let [query-fn (:db.sql/query-fn (system-state))
+        owner    (query-fn :get-owner {:id 6})
+        pets     (query-fn :get-pets-by-owner-ids {:ownerids [(:id owner)]})
+        pet      {:name "bowser" :type_id 2  :birth_date (java.time.LocalDate/now) :ownerid (:id owner)}]
+    (query-fn :create-pet! pet)
+    (let [pets-after (query-fn :get-pets-by-owner-ids {:ownerids [(:id owner)]})
+          bowser     (first (filter #(= "bowser" (:name %)) pets-after))]
+      (is (= (count pets-after) (inc (count pets))))
+      (is (some? (:id bowser))))))
+
+(deftest should-update-pet-name
+  (let [query-fn (:db.sql/query-fn (system-state))
+        pets     (query-fn :get-pets-by-owner-ids {:ownerids [6]})
+        pet      (first (filter #(= (:id %) 7) pets))
+        _        (->> (update pet :name str "X")
+                      (merge {:ownerid 6})
+                      (query-fn :update-pet!))
+        pets     (query-fn :get-pets-by-owner-ids {:ownerids [6]})
+        updated-pet (first (filter #(= (:id %) 7) pets))]
+
+    (is (= (str (:name pet) "X") (:name updated-pet)))))
+
+(deftest should-find-vets
+  (let [query-fn (:db.sql/query-fn (system-state))
+        total (:total (query-fn :get-vets-count {}))
+        vets  (vets/vets-with-specialties query-fn total 1)
+        vet3  (first (filter #(= 3 (:id %)) vets))]
+    (is (= (:last_name vet3) "Douglas"))
+    (is (= 2 (count (:specialties vet3))))
+    (is (= ["dentistry" "surgery"] (map :name (:specialties vet3))))))
