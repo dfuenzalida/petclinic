@@ -1,4 +1,7 @@
 (ns demo.petclinic.web.controllers.pets
+   (:import
+    [java.time LocalDate]
+    [java.time.format DateTimeFormatter])
    (:require
     [clojure.edn :as edn]
     [demo.petclinic.utils :refer [keywordize-keys]]
@@ -70,7 +73,7 @@
         types (query-fn :get-types {})
         pet   (assoc pet :type (->> (filter #(= (:type_id pet) (:id %)) types) first :name))
         visits (query-fn :get-visits-by-pet-ids {:petids [petid]})
-        visit  {:description "" :visit_date (.format (java.time.LocalDate/now) java.time.format.DateTimeFormatter/ISO_LOCAL_DATE)}]
+        visit  {:description "" :visit_date (.format (LocalDate/now) DateTimeFormatter/ISO_LOCAL_DATE)}]
     (if (some nil? [owner pet])
       (throw (Exception.))
       (layout/render request "pets/createOrUpdateVisitForm.html"

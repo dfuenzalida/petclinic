@@ -1,4 +1,6 @@
 (ns demo.petclinic.web.controllers.owners-test
+  (:import
+   [java.util Base64])
   (:require
    [clojure.test :refer [deftest testing is use-fixtures]]
    [clojure.string :refer [includes?]]
@@ -94,7 +96,7 @@
           get-response (GET handler "/owners/new" {} {})
           token (get-csrf-token get-response)
           cookie (get-cookie get-response)
-          base64 (.withoutPadding (java.util.Base64/getEncoder))
+          base64 (.withoutPadding (Base64/getEncoder))
 
           ;; Generate a random last name for the owner
           last-name (->> (random-uuid) str .getBytes (.encodeToString base64) (take 10) (apply str))
