@@ -1,8 +1,12 @@
 (ns demo.petclinic.web.clinic-service-test
+  (:import
+   [java.time LocalDate]
+   [java.time.format DateTimeFormatter])
   (:require
    [clojure.test :refer [deftest testing is use-fixtures]]
    [demo.petclinic.test-utils :refer [system-state system-fixture]]
-   [demo.petclinic.web.controllers.vets :as vets]))
+   [demo.petclinic.web.controllers.vets :refer [vets-with-specialties]]
+   [demo.petclinic.web.controllers.owners :refer [pets-with-visits]]))
 
 (use-fixtures :once (system-fixture))
 
@@ -63,7 +67,7 @@
   (let [query-fn (:db.sql/query-fn (system-state))
         owner    (query-fn :get-owner {:id 6})
         pets     (query-fn :get-pets-by-owner-ids {:ownerids [(:id owner)]})
-        pet      {:name "bowser" :type_id 2  :birth_date (java.time.LocalDate/now) :ownerid (:id owner)}]
+        pet      {:name "bowser" :type_id 2  :birth_date (LocalDate/now) :ownerid (:id owner)}]
     (query-fn :create-pet! pet)
     (let [pets-after (query-fn :get-pets-by-owner-ids {:ownerids [(:id owner)]})
           bowser     (first (filter #(= "bowser" (:name %)) pets-after))]
@@ -85,8 +89,32 @@
 (deftest should-find-vets
   (let [query-fn (:db.sql/query-fn (system-state))
         total (:total (query-fn :get-vets-count {}))
-        vets  (vets/vets-with-specialties query-fn total 1)
+        vets  (vets-with-specialties query-fn total 1)
         vet3  (first (filter #(= 3 (:id %)) vets))]
     (is (= (:last_name vet3) "Douglas"))
     (is (= 2 (count (:specialties vet3))))
     (is (= ["dentistry" "surgery"] (map :name (:specialties vet3))))))
+
+(deftest should-add-new-visit-for-pet
+  (let [query-fn (:db.sql/query-fn (system-state))
+        ownerid 6
+        pets    (pets-with-visits query-fn ownerid)
+        pet7    (first (filter #(= (:id %) 7) pets))
+        old-count (count (:visits pet7))
+        new-visit {:description "test"
+                   :visit_date (.format (LocalDate/now) DateTimeFormatter/ISO_LOCAL_DATE)}
+        _       (query-fn :create-visit! (assoc new-visit :pet_id (:id pet7)))
+        pet7    (->> (pets-with-visits query-fn ownerid)
+                     (filter #(= (:id %) 7))
+                     first)
+        new-count (->> pet7 :visits count)]
+
+    (is (= (inc old-count) new-count))
+    ;; Every visit should have an :id
+    (is (every? #(some? (:id %)) (:visits pet7)))))
+
+(deftest should-find-visits-by-pet-id
+  (let [query-fn (:db.sql/query-fn (system-state))
+        visits   (query-fn :get-visits-by-pet-ids {:petids [7]})]
+    (is (= 2 (count visits)))
+    (is (some? (-> visits first :visit_date)))))
