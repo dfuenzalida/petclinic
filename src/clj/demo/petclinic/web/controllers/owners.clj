@@ -44,13 +44,16 @@
   (layout/render request "owners/createOrUpdateOwnerForm.html"
                  (with-translation {:owner {} :new true} request)))
 
+(defn pets-with-visits [query-fn ownerid]
+  (let [pets    (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})
+        visits  (query-fn :get-visits-by-pet-ids {:petids (mapv :id pets)})]
+    (aggregate-by-key pets :id visits :pet_id :visits)))
+
 (defn owner-details [{:keys [query-fn]} {{:keys [ownerid]} :path-params {:keys [error message]} :flash :as request}]
   (try
     (let [ownerid (int (edn/read-string ownerid))
           owner   (query-fn :get-owner {:id ownerid})
-          pets    (query-fn :get-pets-by-owner-ids {:ownerids [ownerid]})
-          visits  (query-fn :get-visits-by-pet-ids {:petids (mapv :id pets)})
-          pets    (aggregate-by-key pets :id visits :pet_id :visits)]
+          pets    (pets-with-visits query-fn ownerid)]
 
       (if (nil? owner)
         (throw (Exception.))
