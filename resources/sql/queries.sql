@@ -54,7 +54,7 @@ INSERT INTO owners VALUES (default, :first_name, :last_name, :address, :city, :t
 
 -- :name get-visits-by-pet-ids :? :*
 -- :doc get the list of visits for some pets identified by their ids
-SELECT pet_id, visit_date, description FROM visits WHERE pet_id IN (:v*:petids) ORDER BY pet_id, visit_date ASC
+SELECT id, pet_id, visit_date, description FROM visits WHERE pet_id IN (:v*:petids) ORDER BY pet_id, visit_date ASC
 
 -- :name create-visit! :! :n
 -- :doc creates a visit
