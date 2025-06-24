@@ -29,7 +29,6 @@
   []
   (integrant.repl/set-prep! (fn []
                               (-> (demo.petclinic.config/system-config {:profile :dev})
-                                  ;; (compile-sass)
                                   (ig/expand)))))
 
 (defn test-prep!
@@ -47,9 +46,15 @@
 
 (def refresh repl/refresh)
 
-;; Evaluate this line when you make changes to the SASS/SCSS files
-;; (compile-sass)
+(comment
+  ;; Evaluate this line when you make changes to the SASS/SCSS files
+  (compile-sass)
+  )
 
 (comment
   (go)
   (reset))
+
+(comment
+  (halt)
+  )

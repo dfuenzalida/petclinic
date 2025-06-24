@@ -77,8 +77,7 @@
                      (with-translation {:owner owner :pet pet :visit visit :visits visits} request)))))
 
 (defn create-visit! [{:keys [query-fn]} {{:keys [ownerid petid]} :path-params :as request}]
-  (let [_ (log/info "@@@ Creating visit...")
-        owner   (query-fn :get-owner {:id ownerid})
+  (let [owner   (query-fn :get-owner {:id ownerid})
         petid (int (edn/read-string petid))
         pet   (query-fn :get-pet {:id petid :ownerid ownerid})
         types (query-fn :get-types {})

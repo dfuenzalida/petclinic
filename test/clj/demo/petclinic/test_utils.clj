@@ -18,7 +18,6 @@
     (core/stop-app)))
 
 (defn get-response [ctx]
-  ;; (log/info "@@@ get-response request" (-> ctx :request (update :body (fnil bs/to-string ""))))
   (-> ctx
       :response
       (update :body (fnil bs/to-string ""))))
