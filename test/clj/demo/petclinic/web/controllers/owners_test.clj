@@ -113,8 +113,8 @@
                        (mock/header "Cookie" cookie)
                        handler)]
       (is (= 302 (:status response)))
-      (is (includes? (:headers response) "Location"))
-      (is (includes? (:headers response) "/owners"))
+      (is (->> response :headers keys (some #{"Location"})))
+      (is (includes? (get-in response [:headers "Location"]) "/owners"))
 
       ;; Finally, check if the owner was created in the DB
       (let [query-fn (:db.sql/query-fn (system-state))
