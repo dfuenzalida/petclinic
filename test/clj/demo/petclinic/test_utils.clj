@@ -1,10 +1,13 @@
 (ns demo.petclinic.test-utils
   (:require
-    [clojure.tools.logging :as log]
-    [demo.petclinic.core :as core]
-    [peridot.core :as p]
-    [byte-streams :as bs]
-    [integrant.repl.state :as state]))
+   [byte-streams :as bs]
+   [demo.petclinic.core :as core]
+   [demo.petclinic.web.pages.layout :as layout]
+   [integrant.repl.state :as state]
+   [peridot.core :as p]
+   [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
+   [ring.util.http-response :refer [content-type ok]]
+   [selmer.parser :as parser]))
 
 (defn system-state
   []
@@ -43,3 +46,14 @@
 (defn get-csrf-token [response]
   (let [field-regex #"name=\"__anti-forgery-token\" type=\"hidden\" value=\"([A-Za-z0-9+/=]+)\""]
     (second (re-find field-regex (:body response)))))
+
+(def captured-args (atom nil))
+
+(defn render-capturing-args
+  [request template & [params]]
+  (reset! captured-args [request template params])
+  (-> (parser/render-file template
+                          (assoc params :page template :csrf-token *anti-forgery-token*)
+                          layout/selmer-opts)
+      (ok)
+      (content-type "text/html; charset=utf-8")))

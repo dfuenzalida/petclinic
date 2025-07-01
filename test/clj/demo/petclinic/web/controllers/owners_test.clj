@@ -1,13 +1,14 @@
 (ns demo.petclinic.web.controllers.owners-test
-  (:import
-   [java.util Base64])
   (:require
-   [clojure.test :refer [deftest testing is use-fixtures]]
    [clojure.string :refer [includes?]]
-   [clojure.tools.logging :as log]
+   [clojure.test :refer [deftest is testing use-fixtures]]
+   [demo.petclinic.test-utils :refer [GET get-cookie get-csrf-token POST system-fixture
+                                      system-state render-capturing-args captured-args]]
+   [demo.petclinic.web.pages.layout :as layout]
    [demo.petclinic.web.pagination :as pagination]
-   [demo.petclinic.test-utils :refer [system-state system-fixture GET POST get-cookie get-csrf-token]]
-   [ring.mock.request :as mock]))
+   [ring.mock.request :as mock])
+  (:import
+   [java.util Base64]))
 
 (use-fixtures :once (system-fixture))
 
@@ -61,33 +62,41 @@
 
 (deftest owners-creation-tests
   (testing "Owners creation form"
-    (let [handler (:handler/ring (system-state))
-          params {}
-          headers {}
-          response (GET handler "/owners/new" params headers)
-          body (:body response)]
-      (is (= 200 (:status response)))
-      (is (includes? body "<span>Owner</span>"))
-      (is (includes? body ">First Name</label>"))
-      (is (includes? body ">Last Name</label>"))
-      (is (includes? body ">Address</label>"))
-      (is (includes? body ">City</label>"))
-      (is (includes? body ">Telephone</label>"))
-      ;;
-      ))
+    (with-redefs [layout/render render-capturing-args]
+      (let [handler (:handler/ring (system-state))
+            params {}
+            headers {}
+            response (GET handler "/owners/new" params headers)
+            [_req template _params] @captured-args
+            body (:body response)]
+        (is (= 200 (:status response)))
+        (is (= "owners/createOrUpdateOwnerForm.html" template))
+        (is (includes? body "<span>Owner</span>"))
+        (is (includes? body ">First Name</label>"))
+        (is (includes? body ">Last Name</label>"))
+        (is (includes? body ">Address</label>"))
+        (is (includes? body ">City</label>"))
+        (is (includes? body ">Telephone</label>"))
+        ;;
+        )))
 
   (testing "Owners creation form with missing required fields"
-    (let [handler (:handler/ring (system-state))
-          get-response (GET handler "/owners/new" {} {})
-          token (get-csrf-token get-response)
-          cookie (get-cookie get-response)
-          headers {:x-csrf-token token :Cookie cookie}
-          params {:first_name "" :last_name "" :address "" :city "" :telephone ""}
-          response (POST handler "/owners/new" params headers)
-          body (:body response)]
-      (is (= 200 (:status response)))
-      (is (includes? body "must not be blank"))
-      (is (includes? body "Telephone must be a 10-digit number"))))
+    (with-redefs [layout/render render-capturing-args]
+      (let [handler (:handler/ring (system-state))
+            get-response (GET handler "/owners/new" {} {})
+            token (get-csrf-token get-response)
+            cookie (get-cookie get-response)
+            headers {:x-csrf-token token :Cookie cookie}
+            params {:first_name "" :last_name "" :address "" :city "" :telephone ""}
+            response (POST handler "/owners/new" params headers)
+            [_req template _params] @captured-args
+            body (:body response)]
+        (is (= 200 (:status response)))
+        (is (= "owners/createOrUpdateOwnerForm.html" template))
+        (is (= #{:first_name :last_name :address :city :telephone}
+               (set (keys (:errors _params)))))
+        (is (includes? body "must not be blank"))
+        (is (includes? body "Telephone must be a 10-digit number")))))
 
   (testing "Owners creation form with valid data"
     (let [handler (:handler/ring (system-state))
