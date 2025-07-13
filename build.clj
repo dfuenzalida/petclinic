@@ -24,12 +24,12 @@
                 :version version
                 :basis basis
                 :src-dirs ["src/clj"]})
+  (println "Compiling SASS...")
+  (sass/-main "--source-paths" "./resources/scss" "-t" "./resources/public/css")
   (b/copy-dir {:src-dirs ["src/clj" "resources" "env/prod/resources" "env/prod/clj"]
                :target-dir class-dir}))
 
 (defn uber [_]
-  (println "Compiling SASS...")
-  (sass/-main "--source-paths" "./resources/scss" "-t" "./resources/public/css")
   (println "Compiling Clojure...")
   (b/compile-clj {:basis basis
                   :src-dirs ["src/clj" "resources" "env/prod/resources" "env/prod/clj"]

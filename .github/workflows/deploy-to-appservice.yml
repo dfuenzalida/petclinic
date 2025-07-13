@@ -24,7 +24,6 @@ jobs:
         chmod +x /tmp/linux-install.sh
         sudo /tmp/linux-install.sh
         make clean uberjar
-        make clean uberjar
 
     - name: 'Login via Azure CLI'
       uses: azure/login@v1
