@@ -12,14 +12,14 @@ jobs:
 
     - name: Install Clojure CLI and deps
       run: |
-        apt update && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
+        sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y --no-install-recommends \
           curl \
           make \
           openjdk-17-jdk-headless \
           rlwrap
         curl -L -O https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh
         chmod +x linux-install.sh
-        ./linux-install.sh
+        sudo ./linux-install.sh
         make uberjar
 
     - name: 'Login via Azure CLI'
