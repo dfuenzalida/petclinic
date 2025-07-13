@@ -21,7 +21,7 @@ jobs:
         curl -L -O https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh
         chmod +x linux-install.sh
         sudo ./linux-install.sh
-        clj -T:build all
+        clj "-Sforce" "-T:build" "all"
 
     - name: 'Login via Azure CLI'
       uses: azure/login@v1
