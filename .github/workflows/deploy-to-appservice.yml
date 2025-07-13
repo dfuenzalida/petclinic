@@ -11,13 +11,12 @@ jobs:
       run: |
         sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y --no-install-recommends \
           curl \
-          make \
           openjdk-17-jdk-headless \
           rlwrap
         curl -L -O https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh
         chmod +x linux-install.sh
         sudo ./linux-install.sh
-        make uberjar
+        clj -T:build all
 
     - name: 'Login via Azure CLI'
       uses: azure/login@v1
