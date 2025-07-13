@@ -23,7 +23,8 @@ jobs:
         curl -L -o /tmp/linux-install.sh https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh
         chmod +x /tmp/linux-install.sh
         sudo /tmp/linux-install.sh
-        make uberjar
+        make clean uberjar
+        make clean uberjar
 
     - name: 'Login via Azure CLI'
       uses: azure/login@v1
