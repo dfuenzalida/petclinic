@@ -1,0 +1,37 @@
+name: Deploy-To-AppService
+
+on: [push]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: 'Checkout Github Action' 
+      uses: actions/checkout@master
+
+    - name: Install Clojure CLI and deps
+      run: |
+        apt update && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
+          curl \
+          make \
+          openjdk-17-jdk-headless \
+          rlwrap
+        curl -L -O https://github.com/clojure/brew-install/releases/latest/download/linux-install.sh
+        chmod +x linux-install.sh
+        ./linux-install.sh
+        make uberjar
+
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        package: $GITHUB_WORKSPACE/target/petclinic-standalone.jar
+        type: jar
+        clean: true
